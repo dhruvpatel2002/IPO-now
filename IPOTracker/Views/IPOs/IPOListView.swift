@@ -10,6 +10,44 @@ public struct IPOListView: View {
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // On-demand Animated Search Bar (only appears when search icon is clicked)
+                if isSearchPresented {
+                    HStack(spacing: 10) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.secondary)
+                            TextField("Search company, symbol, or industry", text: $viewModel.searchText)
+                                .textFieldStyle(.plain)
+                                .font(.subheadline)
+                            if !viewModel.searchText.isEmpty {
+                                Button {
+                                    viewModel.searchText = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(10)
+                        
+                        Button("Cancel") {
+                            withAnimation(.spring(response: 0.3)) {
+                                isSearchPresented = false
+                                viewModel.searchText = ""
+                            }
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.accentColor)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color(UIColor.systemBackground))
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                }
+                
                 // Top Level: Primary Category Tabs (Ongoing, Upcoming, Closed)
                 HStack(spacing: 0) {
                     ForEach(IPOCategory.allCases) { category in
@@ -125,19 +163,15 @@ public struct IPOListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
-                        isSearchPresented.toggle()
+                        withAnimation(.spring(response: 0.3)) {
+                            isSearchPresented.toggle()
+                        }
                     } label: {
-                        Image(systemName: "magnifyingglass")
+                        Image(systemName: isSearchPresented ? "xmark" : "magnifyingglass")
                             .font(.subheadline.weight(.semibold))
                     }
                 }
             }
-            .searchable(
-                text: $viewModel.searchText,
-                isPresented: $isSearchPresented,
-                placement: .navigationBarDrawer(displayMode: .automatic),
-                prompt: "Search company, symbol, or industry"
-            )
             .sheet(item: $selectedIPOForAllotment) { ipo in
                 AllotmentCheckerSheet(ipo: ipo)
             }
