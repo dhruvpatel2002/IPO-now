@@ -44,14 +44,26 @@ class IPOScraper:
         self._load_disk_cache()
 
     def _load_disk_cache(self):
-        if os.path.exists(self._cache_file):
-            try:
-                with open(self._cache_file, "r") as f:
-                    self._cached_ipos = json.load(f)
-                    self._last_fetched = time.time()
-                    print(f"[IPOScraper] Loaded {len(self._cached_ipos)} IPOs from disk cache")
-            except Exception as e:
-                print(f"[IPOScraper] Error loading disk cache: {e}")
+        candidate_paths = [
+            self._cache_file,
+            os.path.join(os.path.dirname(__file__), "data", "live_ipos_cache.json"),
+            os.path.join(os.getcwd(), "backend", "data", "live_ipos_cache.json"),
+            os.path.join(os.getcwd(), "data", "live_ipos_cache.json"),
+            "backend/data/live_ipos_cache.json",
+            "data/live_ipos_cache.json"
+        ]
+        for p in candidate_paths:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        data = json.load(f)
+                        if data and isinstance(data, list) and len(data) > 0:
+                            self._cached_ipos = data
+                            self._last_fetched = time.time()
+                            print(f"[IPOScraper] Successfully loaded {len(self._cached_ipos)} IPOs from disk cache at {p}")
+                            return
+                except Exception as e:
+                    print(f"[IPOScraper] Error reading cache from {p}: {e}")
 
     def _save_disk_cache(self, ipos: List[Dict[str, Any]]):
         try:
