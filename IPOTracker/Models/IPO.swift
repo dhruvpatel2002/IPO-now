@@ -69,7 +69,34 @@ public final class IPO: Identifiable, Codable {
     }
     
     public var status: IPOStatus {
-        get { IPOStatus(rawValue: statusRaw) ?? .upcoming }
+        get {
+            let now = Date()
+            let calendar = Calendar.current
+            
+            // Calculate day start and day end (23:59:59) for opening and closing dates
+            let startOfOpenDay = calendar.startOfDay(for: openingDate)
+            let startOfCloseDay = calendar.startOfDay(for: closingDate)
+            let endOfCloseDay = calendar.date(byAdding: .day, value: 1, to: startOfCloseDay)?.addingTimeInterval(-1) ?? closingDate
+            
+            if now < startOfOpenDay {
+                return .upcoming
+            } else if now <= endOfCloseDay {
+                return .open
+            } else {
+                if let parsed = IPOStatus(rawValue: statusRaw), parsed == .allotmentOut || parsed == .listed {
+                    return parsed
+                }
+                let startOfListingDay = calendar.startOfDay(for: listingDate)
+                if now >= startOfListingDay {
+                    return .listed
+                }
+                let startOfAllotmentDay = calendar.startOfDay(for: allotmentDate)
+                if now >= startOfAllotmentDay {
+                    return .allotmentOut
+                }
+                return .closed
+            }
+        }
         set { statusRaw = newValue.rawValue }
     }
     

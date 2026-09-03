@@ -21,7 +21,9 @@ public final class HomeViewModel: ObservableObject {
     public var closingSoonCount: Int {
         ipos.filter { ipo in
             guard ipo.status == .open else { return false }
-            let hoursUntilClose = ipo.closingDate.timeIntervalSince(Date()) / 3600
+            let startOfCloseDay = Calendar.current.startOfDay(for: ipo.closingDate)
+            let endOfCloseDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfCloseDay)?.addingTimeInterval(-1) ?? ipo.closingDate
+            let hoursUntilClose = endOfCloseDay.timeIntervalSince(Date()) / 3600
             return hoursUntilClose <= 48 && hoursUntilClose > 0
         }.count
     }
