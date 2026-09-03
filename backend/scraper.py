@@ -1,6 +1,8 @@
 import re
 import time
 import datetime
+import os
+import json
 from typing import List, Dict, Any, Optional
 from playwright.sync_api import sync_playwright
 
@@ -33,8 +35,19 @@ def clean_company_name(raw: str) -> str:
             
     return cleaned.strip()
 
-import json
-import os
+def parse_ipo_date(d_str: str, current_year: int = 2026) -> Optional[datetime.datetime]:
+    if not d_str or d_str.strip() in ["-", "TBA", "–", ""]:
+        return None
+    d_clean = re.sub(r'[^A-Za-z0-9-]', '', d_str).strip()
+    for fmt in ["%d-%b", "%d-%b-%Y", "%d-%B", "%b-%d", "%Y-%m-%d"]:
+        try:
+            dt = datetime.datetime.strptime(d_clean, fmt)
+            if dt.year == 1900:
+                dt = dt.replace(year=current_year)
+            return dt.replace(tzinfo=datetime.timezone.utc)
+        except:
+            pass
+    return None
 
 class IPOScraper:
     def __init__(self):
@@ -104,7 +117,7 @@ class IPOScraper:
                 )
                 page = context.new_page()
 
-                # --- 1. Scrape InvestorGain (Live GMP & Subscriptions) ---
+                # --- 1. Scrape InvestorGain (Live GMP, Dates & Subscriptions) ---
                 try:
                     page.goto("https://www.investorgain.com/report/ipo-gmp-live/331/", timeout=30000)
                     page.wait_for_selector("table tbody tr", timeout=12000)
@@ -131,15 +144,6 @@ class IPOScraper:
                         is_sme = "sme" in raw_name.lower() or "bse sme" in raw_name.lower() or "nse sme" in raw_name.lower()
                         ipo_type = "SME" if is_sme else "Mainboard"
 
-                        if "IPOU" in raw_name or "SMEU" in raw_name:
-                            status = "Upcoming"
-                        elif "IPOL" in raw_name or "SMEL" in raw_name:
-                            status = "Open Now"
-                        elif "IPOC" in raw_name or "SMEC" in raw_name or "Allotted" in raw_name or "ALLOTTED" in raw_name:
-                            status = "Closed"
-                        else:
-                            status = "Upcoming"
-
                         gmp_raw = cells[1].inner_text().strip()
                         gmp_val = 0.0
                         if "₹" in gmp_raw:
@@ -158,16 +162,24 @@ class IPOScraper:
                         lot_raw = cells[6].inner_text().strip() if len(cells) > 6 else "50"
                         lot_val = int(clean_num(lot_raw.replace(",", ""))) or (1200 if is_sme else 50)
 
+                        open_date_str = cells[7].inner_text().strip() if len(cells) > 7 else ""
+                        close_date_str = cells[8].inner_text().strip() if len(cells) > 8 else ""
+                        allot_date_str = cells[9].inner_text().strip() if len(cells) > 9 else ""
+                        list_date_str = cells[10].inner_text().strip() if len(cells) > 10 else ""
+
                         results.append(self._build_ipo(
                             symbol=symbol,
                             name=name,
                             ipo_type=ipo_type,
-                            status=status,
                             price=price_val,
                             gmp=gmp_val,
                             lot_size=lot_val,
                             issue_size=size_val,
                             subscription=sub_val,
+                            open_str=open_date_str,
+                            close_str=close_date_str,
+                            allot_str=allot_date_str,
+                            list_str=list_date_str,
                             source="InvestorGain"
                         ))
                 except Exception as eg:
@@ -216,12 +228,15 @@ class IPOScraper:
                                 symbol=symbol,
                                 name=name,
                                 ipo_type=ipo_type,
-                                status="Upcoming",
                                 price=price_val,
                                 gmp=gmp_val,
                                 lot_size=lot_val,
                                 issue_size=size_val,
                                 subscription=0.0,
+                                open_str="",
+                                close_str="",
+                                allot_str="",
+                                list_str="",
                                 source="IPOPremium"
                             ))
                 except Exception as ep:
@@ -233,33 +248,40 @@ class IPOScraper:
 
         return results
 
-    def _build_ipo(self, symbol: str, name: str, ipo_type: str, status: str, 
+    def _build_ipo(self, symbol: str, name: str, ipo_type: str, 
                    price: float, gmp: float, lot_size: int, issue_size: float, 
-                   subscription: float, source: str) -> Dict[str, Any]:
+                   subscription: float, open_str: str, close_str: str, 
+                   allot_str: str, list_str: str, source: str) -> Dict[str, Any]:
         est_listing_price = price + gmp
         now_dt = datetime.datetime.now(datetime.timezone.utc)
         
-        if status == "Open Now":
-            open_dt = now_dt - datetime.timedelta(days=1)
-            close_dt = now_dt + datetime.timedelta(days=2) # Closes in 2 days
-            allot_dt = close_dt + datetime.timedelta(days=1)
-            refund_dt = allot_dt + datetime.timedelta(days=1)
-            demat_dt = refund_dt
-            list_dt = demat_dt + datetime.timedelta(days=1)
-        elif status == "Upcoming":
-            open_dt = now_dt + datetime.timedelta(days=4) # Opens in 4 days
-            close_dt = open_dt + datetime.timedelta(days=3)
-            allot_dt = close_dt + datetime.timedelta(days=1)
-            refund_dt = allot_dt + datetime.timedelta(days=1)
-            demat_dt = refund_dt
-            list_dt = demat_dt + datetime.timedelta(days=1)
-        else: # Closed
-            close_dt = now_dt - datetime.timedelta(days=2) # Closed 2 days ago
-            open_dt = close_dt - datetime.timedelta(days=3)
-            allot_dt = now_dt - datetime.timedelta(days=1)
-            refund_dt = now_dt
-            demat_dt = now_dt
-            list_dt = now_dt + datetime.timedelta(days=1)
+        parsed_open = parse_ipo_date(open_str)
+        parsed_close = parse_ipo_date(close_str)
+        parsed_allot = parse_ipo_date(allot_str)
+        parsed_list = parse_ipo_date(list_str)
+        
+        # Fallback default dates if not provided by source table
+        if not parsed_close:
+            parsed_close = now_dt + datetime.timedelta(days=7)
+        if not parsed_open:
+            parsed_open = parsed_close - datetime.timedelta(days=3)
+            
+        # Set close date to end of day (23:59:59 IST = 18:29:59 UTC)
+        close_end_day = parsed_close.replace(hour=18, minute=29, second=59)
+        open_start_day = parsed_open.replace(hour=0, minute=0, second=0)
+        
+        # Determine status purely from open and close dates
+        if now_dt > close_end_day:
+            status = "Closed"
+        elif now_dt < open_start_day:
+            status = "Upcoming"
+        else:
+            status = "Open Now"
+            
+        allot_dt = parsed_allot or (close_end_day + datetime.timedelta(days=1))
+        list_dt = parsed_list or (allot_dt + datetime.timedelta(days=2))
+        refund_dt = allot_dt
+        demat_dt = allot_dt
             
         def fmt_iso(d: datetime.datetime) -> str:
             return d.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -278,8 +300,8 @@ class IPOScraper:
             "freshIssueInCr": round(issue_size * 0.75, 2) if issue_size > 0 else 0,
             "offerForSaleInCr": round(issue_size * 0.25, 2) if issue_size > 0 else 0,
             "faceValue": 10.0,
-            "openingDate": fmt_iso(open_dt),
-            "closingDate": fmt_iso(close_dt),
+            "openingDate": fmt_iso(open_start_day),
+            "closingDate": fmt_iso(close_end_day),
             "allotmentDate": fmt_iso(allot_dt),
             "refundDate": fmt_iso(refund_dt),
             "dematDate": fmt_iso(demat_dt),
