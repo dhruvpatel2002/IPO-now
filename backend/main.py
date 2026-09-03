@@ -1,10 +1,14 @@
+import os
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
+
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
-from scraper import scraper
+import asyncio
 import datetime
+from scraper import scraper
 
 scheduler = BackgroundScheduler()
 
@@ -14,13 +18,12 @@ def scheduled_refresh():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 1. Trigger initial live scrape on server boot
-    print("[Startup] Triggering initial live scrape...")
-    scheduler.add_job(scheduled_refresh, "cron", hour="9,18", minute="30") # 9:30 AM & 6:30 PM daily
+    # Start scheduler for 9:30 AM & 6:30 PM daily
+    scheduler.add_job(scheduled_refresh, "cron", hour="9,18", minute="30")
     scheduler.start()
     
-    # Run once in background on startup
-    scraper.fetch_all_ipos(force=True)
+    # Run initial scrape in a separate background thread so it doesn't block boot or asyncio loop
+    asyncio.create_task(asyncio.to_thread(scraper.fetch_all_ipos, False))
     
     yield
     
@@ -42,8 +45,8 @@ app.add_middleware(
 )
 
 @app.get("/")
-def health_check():
-    ipos = scraper.fetch_all_ipos()
+async def health_check():
+    ipos = await asyncio.to_thread(scraper.fetch_all_ipos, False)
     return {
         "status": "healthy",
         "service": "IPOnow Scraper API",
@@ -59,12 +62,12 @@ def health_check():
     }
 
 @app.get("/api/ipos")
-def get_ipos(
+async def get_ipos(
     category: Optional[str] = Query(None, description="Category filter: live, upcoming, closed"),
     ipo_type: Optional[str] = Query(None, description="Type filter: mainboard, sme, sse"),
     force_refresh: bool = Query(False, description="Force fresh web scrape")
 ) -> List[Dict[str, Any]]:
-    all_ipos = scraper.fetch_all_ipos(force=force_refresh)
+    all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, force_refresh)
     results = all_ipos
 
     if ipo_type:
@@ -83,16 +86,16 @@ def get_ipos(
     return results
 
 @app.get("/api/ipos/{ipo_id}")
-def get_ipo_detail(ipo_id: str) -> Dict[str, Any]:
-    all_ipos = scraper.fetch_all_ipos()
+async def get_ipo_detail(ipo_id: str) -> Dict[str, Any]:
+    all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, False)
     for item in all_ipos:
         if item.get("id", "").lower() == ipo_id.lower() or item.get("symbol", "").lower() == ipo_id.lower():
             return item
     raise HTTPException(status_code=404, detail="IPO not found")
 
 @app.get("/api/gmp")
-def get_gmp_rankings() -> List[Dict[str, Any]]:
-    all_ipos = scraper.fetch_all_ipos()
+async def get_gmp_rankings() -> List[Dict[str, Any]]:
+    all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, False)
     gmp_items = [
         {
             "id": i.get("id"),
@@ -110,8 +113,8 @@ def get_gmp_rankings() -> List[Dict[str, Any]]:
     return gmp_items
 
 @app.post("/api/refresh")
-def refresh_data():
-    updated = scraper.fetch_all_ipos(force=True)
+async def refresh_data():
+    updated = await asyncio.to_thread(scraper.fetch_all_ipos, True)
     return {
         "status": "success",
         "message": f"Successfully scraped {len(updated)} live IPOs",
