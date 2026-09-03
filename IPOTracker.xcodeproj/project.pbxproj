@@ -1,0 +1,492 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+/* Begin PBXBuildFile section */
+		9E48A58330384B42A4106C79 /* AllotmentViewModel.swift in Build */ = {isa = PBXBuildFile; fileRef = 2499DEC8D8844DF9805A9CF3 /* AllotmentViewModel.swift */; };
+		96EA986A49D74E309E4FE102 /* HomeViewModel.swift in Build */ = {isa = PBXBuildFile; fileRef = BA7419C0EFD34FED99045471 /* HomeViewModel.swift */; };
+		804827F40FE244FB84782C3F /* IPODetailViewModel.swift in Build */ = {isa = PBXBuildFile; fileRef = DD435FA09E874F78A5F9CE5E /* IPODetailViewModel.swift */; };
+		71CC2B0B30134699989E50DB /* IPOListViewModel.swift in Build */ = {isa = PBXBuildFile; fileRef = CB38F10143B94413B6B1B78A /* IPOListViewModel.swift */; };
+		A258E4C28D6449C99213DBE2 /* IPOTrackerApp.swift in Build */ = {isa = PBXBuildFile; fileRef = 5383D4621A30438397562668 /* IPOTrackerApp.swift */; };
+		8B3D859CCF934EDE955137C7 /* MainTabView.swift in Build */ = {isa = PBXBuildFile; fileRef = 537ECF4D5C3640D0B0E15B66 /* MainTabView.swift */; };
+		AC39E6E59B224C0DA9AE2733 /* AllotmentResult.swift in Build */ = {isa = PBXBuildFile; fileRef = 9B77E13DF0D547E39D09803F /* AllotmentResult.swift */; };
+		4E603DDADBFD46BABCF58E68 /* IPO.swift in Build */ = {isa = PBXBuildFile; fileRef = BCCD04F2FD8F4609BB14828D /* IPO.swift */; };
+		F0FF27C3700C439E958B9438 /* SavedPAN.swift in Build */ = {isa = PBXBuildFile; fileRef = B819B29030A64A139CE9718E /* SavedPAN.swift */; };
+		50BD2D6F62E140DE8E19C6F4 /* WatchlistItem.swift in Build */ = {isa = PBXBuildFile; fileRef = 83AC5AAD4E25481DA10BC6D3 /* WatchlistItem.swift */; };
+		3AE37038F3314FE68B516435 /* DateTimeline.swift in Build */ = {isa = PBXBuildFile; fileRef = 6D62476E70DE4689AA301676 /* DateTimeline.swift */; };
+		C79D8FB28BDC48D38EBBE981 /* IPOCard.swift in Build */ = {isa = PBXBuildFile; fileRef = 995F350A4D05417E9CDDE9FA /* IPOCard.swift */; };
+		E7682DD2561D403EBEB1DC35 /* MetricCard.swift in Build */ = {isa = PBXBuildFile; fileRef = C00675BD3449425A9CD3B4E9 /* MetricCard.swift */; };
+		FC11581B40BD432CBEC6161D /* SkeletonCard.swift in Build */ = {isa = PBXBuildFile; fileRef = A78DF4455D064D3C81BE0837 /* SkeletonCard.swift */; };
+		BF30F1CC079F446A909D985D /* StatusBadge.swift in Build */ = {isa = PBXBuildFile; fileRef = 8220DA0F03374AE0B6094B34 /* StatusBadge.swift */; };
+		6B4831BAF2844791ABC3822E /* SubscriptionCard.swift in Build */ = {isa = PBXBuildFile; fileRef = CEB0D69B47FF46E7BEF07B43 /* SubscriptionCard.swift */; };
+		935826B6F6DC46D7BB979E87 /* SettingsView.swift in Build */ = {isa = PBXBuildFile; fileRef = AA555572597B4896814FDE8E /* SettingsView.swift */; };
+		ED12E79F5E0C45DC871DF04C /* HomeView.swift in Build */ = {isa = PBXBuildFile; fileRef = 88CAA6387DDB44E5BD7B06D2 /* HomeView.swift */; };
+		FF7EA260D3534604B7FAA5ED /* FilterSheetView.swift in Build */ = {isa = PBXBuildFile; fileRef = 27FAC4B679024FE8BC1B2AD3 /* FilterSheetView.swift */; };
+		E1CC40F700A048AA8543BE2E /* IPOListView.swift in Build */ = {isa = PBXBuildFile; fileRef = EE0CF0DAC9C644429094A632 /* IPOListView.swift */; };
+		D10D247721C940B2AE478381 /* IPODetailView.swift in Build */ = {isa = PBXBuildFile; fileRef = D5F6063FFBFA48A9A4505F84 /* IPODetailView.swift */; };
+		C148A4DDD74F4E7F897064A9 /* AllotmentCheckerSheet.swift in Build */ = {isa = PBXBuildFile; fileRef = BCF94276C3AD4C999F51B355 /* AllotmentCheckerSheet.swift */; };
+		9F223EC52E204AB383697A83 /* AllotmentResultView.swift in Build */ = {isa = PBXBuildFile; fileRef = 71451498425D42D998327376 /* AllotmentResultView.swift */; };
+		D712F8C0346946758007E5D8 /* AllotmentTabView.swift in Build */ = {isa = PBXBuildFile; fileRef = C871326D224948D9AB823E6C /* AllotmentTabView.swift */; };
+		B112688D10C3440185468107 /* SavedPANsView.swift in Build */ = {isa = PBXBuildFile; fileRef = 4D4364C68EC2433280BF9021 /* SavedPANsView.swift */; };
+		71675A5CF61D426DB33FDDEC /* AppConfig.swift in Build */ = {isa = PBXBuildFile; fileRef = 1F525598CE564673884759B5 /* AppConfig.swift */; };
+		CC24EE0729724F849E85600C /* IPOService.swift in Build */ = {isa = PBXBuildFile; fileRef = 66CDA8DB27324DE8B9A43B00 /* IPOService.swift */; };
+		47200800D4C24635B68752AC /* MockAllotmentService.swift in Build */ = {isa = PBXBuildFile; fileRef = D6E44DE91DB2476E9379B9B6 /* MockAllotmentService.swift */; };
+		2E271F51EADC4261A6A32727 /* MockIPOService.swift in Build */ = {isa = PBXBuildFile; fileRef = 6BBBF59EC1084FCABCCB3C1E /* MockIPOService.swift */; };
+		04D2DE87B7DE485087446E07 /* NotificationService.swift in Build */ = {isa = PBXBuildFile; fileRef = 14F6A852A27F4A39BE7BE825 /* NotificationService.swift */; };
+		B1B72BBB02284F54AB4436B7 /* UpvalyIPOService.swift in Build */ = {isa = PBXBuildFile; fileRef = 4AE466ED2F5F4B2293A19AAB /* UpvalyIPOService.swift */; };
+		2726B80D63E4474DBFD6CF6D /* Assets.xcassets in Build */ = {isa = PBXBuildFile; fileRef = 20F985F8403E40AF93F4DD1A /* Assets.xcassets */; };
+		E7F533F14E00483BB8F84C60 /* MockData.json in Build */ = {isa = PBXBuildFile; fileRef = 4697D8E275A74B8E9ADE9444 /* MockData.json */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		FAA0B34F71E9466CAAA02FD2 /* IPOnow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IPOnow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2499DEC8D8844DF9805A9CF3 /* AllotmentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AllotmentViewModel.swift"; name = "AllotmentViewModel.swift"; sourceTree = "<group>"; };
+		BA7419C0EFD34FED99045471 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeViewModel.swift"; name = "HomeViewModel.swift"; sourceTree = "<group>"; };
+		DD435FA09E874F78A5F9CE5E /* IPODetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPODetailViewModel.swift"; name = "IPODetailViewModel.swift"; sourceTree = "<group>"; };
+		CB38F10143B94413B6B1B78A /* IPOListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPOListViewModel.swift"; name = "IPOListViewModel.swift"; sourceTree = "<group>"; };
+		5383D4621A30438397562668 /* IPOTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPOTrackerApp.swift"; name = "IPOTrackerApp.swift"; sourceTree = "<group>"; };
+		537ECF4D5C3640D0B0E15B66 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainTabView.swift"; name = "MainTabView.swift"; sourceTree = "<group>"; };
+		9B77E13DF0D547E39D09803F /* AllotmentResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AllotmentResult.swift"; name = "AllotmentResult.swift"; sourceTree = "<group>"; };
+		BCCD04F2FD8F4609BB14828D /* IPO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPO.swift"; name = "IPO.swift"; sourceTree = "<group>"; };
+		B819B29030A64A139CE9718E /* SavedPAN.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SavedPAN.swift"; name = "SavedPAN.swift"; sourceTree = "<group>"; };
+		83AC5AAD4E25481DA10BC6D3 /* WatchlistItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WatchlistItem.swift"; name = "WatchlistItem.swift"; sourceTree = "<group>"; };
+		6D62476E70DE4689AA301676 /* DateTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateTimeline.swift"; name = "DateTimeline.swift"; sourceTree = "<group>"; };
+		995F350A4D05417E9CDDE9FA /* IPOCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPOCard.swift"; name = "IPOCard.swift"; sourceTree = "<group>"; };
+		C00675BD3449425A9CD3B4E9 /* MetricCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MetricCard.swift"; name = "MetricCard.swift"; sourceTree = "<group>"; };
+		A78DF4455D064D3C81BE0837 /* SkeletonCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SkeletonCard.swift"; name = "SkeletonCard.swift"; sourceTree = "<group>"; };
+		8220DA0F03374AE0B6094B34 /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StatusBadge.swift"; name = "StatusBadge.swift"; sourceTree = "<group>"; };
+		CEB0D69B47FF46E7BEF07B43 /* SubscriptionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SubscriptionCard.swift"; name = "SubscriptionCard.swift"; sourceTree = "<group>"; };
+		AA555572597B4896814FDE8E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; name = "SettingsView.swift"; sourceTree = "<group>"; };
+		88CAA6387DDB44E5BD7B06D2 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HomeView.swift"; name = "HomeView.swift"; sourceTree = "<group>"; };
+		27FAC4B679024FE8BC1B2AD3 /* FilterSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FilterSheetView.swift"; name = "FilterSheetView.swift"; sourceTree = "<group>"; };
+		EE0CF0DAC9C644429094A632 /* IPOListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPOListView.swift"; name = "IPOListView.swift"; sourceTree = "<group>"; };
+		D5F6063FFBFA48A9A4505F84 /* IPODetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPODetailView.swift"; name = "IPODetailView.swift"; sourceTree = "<group>"; };
+		BCF94276C3AD4C999F51B355 /* AllotmentCheckerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AllotmentCheckerSheet.swift"; name = "AllotmentCheckerSheet.swift"; sourceTree = "<group>"; };
+		71451498425D42D998327376 /* AllotmentResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AllotmentResultView.swift"; name = "AllotmentResultView.swift"; sourceTree = "<group>"; };
+		C871326D224948D9AB823E6C /* AllotmentTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AllotmentTabView.swift"; name = "AllotmentTabView.swift"; sourceTree = "<group>"; };
+		4D4364C68EC2433280BF9021 /* SavedPANsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SavedPANsView.swift"; name = "SavedPANsView.swift"; sourceTree = "<group>"; };
+		1F525598CE564673884759B5 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppConfig.swift"; name = "AppConfig.swift"; sourceTree = "<group>"; };
+		66CDA8DB27324DE8B9A43B00 /* IPOService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IPOService.swift"; name = "IPOService.swift"; sourceTree = "<group>"; };
+		D6E44DE91DB2476E9379B9B6 /* MockAllotmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MockAllotmentService.swift"; name = "MockAllotmentService.swift"; sourceTree = "<group>"; };
+		6BBBF59EC1084FCABCCB3C1E /* MockIPOService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MockIPOService.swift"; name = "MockIPOService.swift"; sourceTree = "<group>"; };
+		14F6A852A27F4A39BE7BE825 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotificationService.swift"; name = "NotificationService.swift"; sourceTree = "<group>"; };
+		4AE466ED2F5F4B2293A19AAB /* UpvalyIPOService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UpvalyIPOService.swift"; name = "UpvalyIPOService.swift"; sourceTree = "<group>"; };
+		20F985F8403E40AF93F4DD1A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Assets.xcassets"; name = "Assets.xcassets"; sourceTree = "<group>"; };
+		4697D8E275A74B8E9ADE9444 /* MockData.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "MockData.json"; name = "MockData.json"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		85271480F1FA431C98BD2B76 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9B87AA75BBF648B3B528CF44 = {
+			isa = PBXGroup;
+			children = (
+				A70766D740CE4551B48055CA /* IPOTracker */,
+				112006F2312F409FB42FC084 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		112006F2312F409FB42FC084 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FAA0B34F71E9466CAAA02FD2 /* IPOnow.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A70766D740CE4551B48055CA /* IPOTracker */ = {
+			isa = PBXGroup;
+			children = (
+				78246B334B884276B7F40145 /* App */,
+				C8C0D753174A4F7DB8553FFD /* Components */,
+				A03CD02E01BA45C2BCCB63C2 /* Models */,
+				BCF6D4440A434F54ABA52C05 /* Resources */,
+				489628E10C1946549C24CAE1 /* Services */,
+				0DDCB03F8AF14EB586AA5CC3 /* ViewModels */,
+				F65C69336C0B44BAA15B622D /* Views */,
+			);
+			path = "IPOTracker";
+			sourceTree = "<group>";
+		};
+		78246B334B884276B7F40145 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				5383D4621A30438397562668 /* IPOTrackerApp.swift */,
+				537ECF4D5C3640D0B0E15B66 /* MainTabView.swift */,
+			);
+			path = "App";
+			sourceTree = "<group>";
+		};
+		C8C0D753174A4F7DB8553FFD /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				6D62476E70DE4689AA301676 /* DateTimeline.swift */,
+				995F350A4D05417E9CDDE9FA /* IPOCard.swift */,
+				C00675BD3449425A9CD3B4E9 /* MetricCard.swift */,
+				A78DF4455D064D3C81BE0837 /* SkeletonCard.swift */,
+				8220DA0F03374AE0B6094B34 /* StatusBadge.swift */,
+				CEB0D69B47FF46E7BEF07B43 /* SubscriptionCard.swift */,
+			);
+			path = "Components";
+			sourceTree = "<group>";
+		};
+		A03CD02E01BA45C2BCCB63C2 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				9B77E13DF0D547E39D09803F /* AllotmentResult.swift */,
+				BCCD04F2FD8F4609BB14828D /* IPO.swift */,
+				B819B29030A64A139CE9718E /* SavedPAN.swift */,
+				83AC5AAD4E25481DA10BC6D3 /* WatchlistItem.swift */,
+			);
+			path = "Models";
+			sourceTree = "<group>";
+		};
+		BCF6D4440A434F54ABA52C05 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				20F985F8403E40AF93F4DD1A /* Assets.xcassets */,
+				4697D8E275A74B8E9ADE9444 /* MockData.json */,
+			);
+			path = "Resources";
+			sourceTree = "<group>";
+		};
+		489628E10C1946549C24CAE1 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				1F525598CE564673884759B5 /* AppConfig.swift */,
+				66CDA8DB27324DE8B9A43B00 /* IPOService.swift */,
+				D6E44DE91DB2476E9379B9B6 /* MockAllotmentService.swift */,
+				6BBBF59EC1084FCABCCB3C1E /* MockIPOService.swift */,
+				14F6A852A27F4A39BE7BE825 /* NotificationService.swift */,
+				4AE466ED2F5F4B2293A19AAB /* UpvalyIPOService.swift */,
+			);
+			path = "Services";
+			sourceTree = "<group>";
+		};
+		0DDCB03F8AF14EB586AA5CC3 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				2499DEC8D8844DF9805A9CF3 /* AllotmentViewModel.swift */,
+				BA7419C0EFD34FED99045471 /* HomeViewModel.swift */,
+				DD435FA09E874F78A5F9CE5E /* IPODetailViewModel.swift */,
+				CB38F10143B94413B6B1B78A /* IPOListViewModel.swift */,
+			);
+			path = "ViewModels";
+			sourceTree = "<group>";
+		};
+		F65C69336C0B44BAA15B622D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C699FAC7C1814F16AA47214D /* Allotment */,
+				670E18CBD2B048AD907ED291 /* Home */,
+				550B325CF9904859AFEAFB41 /* IPODetail */,
+				08F9583707DD48DF97C86CAD /* IPOs */,
+				F6F38C9FB1174636A9AFB01C /* PAN */,
+				BF15408EB73E4C9197A2139A /* Settings */,
+			);
+			path = "Views";
+			sourceTree = "<group>";
+		};
+		C699FAC7C1814F16AA47214D /* Allotment */ = {
+			isa = PBXGroup;
+			children = (
+				BCF94276C3AD4C999F51B355 /* AllotmentCheckerSheet.swift */,
+				71451498425D42D998327376 /* AllotmentResultView.swift */,
+				C871326D224948D9AB823E6C /* AllotmentTabView.swift */,
+			);
+			path = "Allotment";
+			sourceTree = "<group>";
+		};
+		670E18CBD2B048AD907ED291 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				88CAA6387DDB44E5BD7B06D2 /* HomeView.swift */,
+			);
+			path = "Home";
+			sourceTree = "<group>";
+		};
+		550B325CF9904859AFEAFB41 /* IPODetail */ = {
+			isa = PBXGroup;
+			children = (
+				D5F6063FFBFA48A9A4505F84 /* IPODetailView.swift */,
+			);
+			path = "IPODetail";
+			sourceTree = "<group>";
+		};
+		08F9583707DD48DF97C86CAD /* IPOs */ = {
+			isa = PBXGroup;
+			children = (
+				27FAC4B679024FE8BC1B2AD3 /* FilterSheetView.swift */,
+				EE0CF0DAC9C644429094A632 /* IPOListView.swift */,
+			);
+			path = "IPOs";
+			sourceTree = "<group>";
+		};
+		F6F38C9FB1174636A9AFB01C /* PAN */ = {
+			isa = PBXGroup;
+			children = (
+				4D4364C68EC2433280BF9021 /* SavedPANsView.swift */,
+			);
+			path = "PAN";
+			sourceTree = "<group>";
+		};
+		BF15408EB73E4C9197A2139A /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				AA555572597B4896814FDE8E /* SettingsView.swift */,
+			);
+			path = "Settings";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F1BEFCC0D9704F0B9E60B7CB /* IPOnow */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D6A03B58B63847AB8D1368A7 /* Build configuration list for PBXNativeTarget "IPOnow" */;
+			buildPhases = (
+				581F84537B734CC68592FDE7 /* Sources */,
+				85271480F1FA431C98BD2B76 /* Frameworks */,
+				AD1154E444B148729B0B204B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = IPOnow;
+			productName = IPOnow;
+			productReference = FAA0B34F71E9466CAAA02FD2 /* IPOnow.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2EDA8B885B6843CB845E8B75 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					F1BEFCC0D9704F0B9E60B7CB = {
+						CreatedOnToolsVersion = 15.0;
+						DevelopmentTeam = W8WT5QRG3J;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 3D68DD7260724E489E2EBD78 /* Build configuration list for PBXProject "IPOnow" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9B87AA75BBF648B3B528CF44;
+			productRefGroup = 112006F2312F409FB42FC084 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F1BEFCC0D9704F0B9E60B7CB /* IPOnow */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AD1154E444B148729B0B204B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2726B80D63E4474DBFD6CF6D /* Assets.xcassets in Resources */,
+				E7F533F14E00483BB8F84C60 /* MockData.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		581F84537B734CC68592FDE7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9E48A58330384B42A4106C79 /* AllotmentViewModel.swift in Sources */,
+				96EA986A49D74E309E4FE102 /* HomeViewModel.swift in Sources */,
+				804827F40FE244FB84782C3F /* IPODetailViewModel.swift in Sources */,
+				71CC2B0B30134699989E50DB /* IPOListViewModel.swift in Sources */,
+				A258E4C28D6449C99213DBE2 /* IPOTrackerApp.swift in Sources */,
+				8B3D859CCF934EDE955137C7 /* MainTabView.swift in Sources */,
+				AC39E6E59B224C0DA9AE2733 /* AllotmentResult.swift in Sources */,
+				4E603DDADBFD46BABCF58E68 /* IPO.swift in Sources */,
+				F0FF27C3700C439E958B9438 /* SavedPAN.swift in Sources */,
+				50BD2D6F62E140DE8E19C6F4 /* WatchlistItem.swift in Sources */,
+				3AE37038F3314FE68B516435 /* DateTimeline.swift in Sources */,
+				C79D8FB28BDC48D38EBBE981 /* IPOCard.swift in Sources */,
+				E7682DD2561D403EBEB1DC35 /* MetricCard.swift in Sources */,
+				FC11581B40BD432CBEC6161D /* SkeletonCard.swift in Sources */,
+				BF30F1CC079F446A909D985D /* StatusBadge.swift in Sources */,
+				6B4831BAF2844791ABC3822E /* SubscriptionCard.swift in Sources */,
+				935826B6F6DC46D7BB979E87 /* SettingsView.swift in Sources */,
+				ED12E79F5E0C45DC871DF04C /* HomeView.swift in Sources */,
+				FF7EA260D3534604B7FAA5ED /* FilterSheetView.swift in Sources */,
+				E1CC40F700A048AA8543BE2E /* IPOListView.swift in Sources */,
+				D10D247721C940B2AE478381 /* IPODetailView.swift in Sources */,
+				C148A4DDD74F4E7F897064A9 /* AllotmentCheckerSheet.swift in Sources */,
+				9F223EC52E204AB383697A83 /* AllotmentResultView.swift in Sources */,
+				D712F8C0346946758007E5D8 /* AllotmentTabView.swift in Sources */,
+				B112688D10C3440185468107 /* SavedPANsView.swift in Sources */,
+				71675A5CF61D426DB33FDDEC /* AppConfig.swift in Sources */,
+				CC24EE0729724F849E85600C /* IPOService.swift in Sources */,
+				47200800D4C24635B68752AC /* MockAllotmentService.swift in Sources */,
+				2E271F51EADC4261A6A32727 /* MockIPOService.swift in Sources */,
+				04D2DE87B7DE485087446E07 /* NotificationService.swift in Sources */,
+				B1B72BBB02284F54AB4436B7 /* UpvalyIPOService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2B4F6CCA36E843D5800B1BB1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		DB225644DBC84B9DAA348A14 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EFFFE89D9BA2489196C0B8A1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W8WT5QRG3J;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "IPOnow";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dhruvpatel.iponow;
+				PRODUCT_NAME = "IPOnow";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		59E0CD99BBC24927AB2DF7F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = W8WT5QRG3J;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "IPOnow";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.dhruvpatel.iponow;
+				PRODUCT_NAME = "IPOnow";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3D68DD7260724E489E2EBD78 /* Build configuration list for PBXProject "IPOnow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B4F6CCA36E843D5800B1BB1 /* Debug */,
+				DB225644DBC84B9DAA348A14 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D6A03B58B63847AB8D1368A7 /* Build configuration list for PBXNativeTarget "IPOnow" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EFFFE89D9BA2489196C0B8A1 /* Debug */,
+				59E0CD99BBC24927AB2DF7F4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = 2EDA8B885B6843CB845E8B75 /* Project object */;
+}

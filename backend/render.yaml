@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: iponow-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 8000
