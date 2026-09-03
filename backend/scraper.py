@@ -38,15 +38,17 @@ def clean_company_name(raw: str) -> str:
 def parse_ipo_date(d_str: str, current_year: int = 2026) -> Optional[datetime.datetime]:
     if not d_str or d_str.strip() in ["-", "TBA", "–", ""]:
         return None
-    d_clean = re.sub(r'[^A-Za-z0-9-]', '', d_str).strip()
-    for fmt in ["%d-%b", "%d-%b-%Y", "%d-%B", "%b-%d", "%Y-%m-%d"]:
-        try:
-            dt = datetime.datetime.strptime(d_clean, fmt)
-            if dt.year == 1900:
-                dt = dt.replace(year=current_year)
-            return dt.replace(tzinfo=datetime.timezone.utc)
-        except:
-            pass
+    match = re.search(r'(\d{1,2}-[A-Za-z]{3}(?:-\d{2,4})?)', d_str)
+    if match:
+        clean = match.group(1)
+        for fmt in ['%d-%b', '%d-%b-%Y', '%d-%b-%y']:
+            try:
+                dt = datetime.datetime.strptime(clean, fmt)
+                if dt.year == 1900:
+                    dt = dt.replace(year=current_year)
+                return dt.replace(tzinfo=datetime.timezone.utc)
+            except:
+                pass
     return None
 
 class IPOScraper:
