@@ -49,7 +49,7 @@ public struct IPOCard: View {
             
             Divider()
             
-            // Key Info Grid: Price, Lot Size / Min Investment, Dates
+            // Key Info Grid: Price, Lot Size, Issue Size, Dates
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("PRICE BAND")
@@ -67,6 +67,17 @@ public struct IPOCard: View {
                         .foregroundColor(.secondary)
                     Text(ipo.displayLotSize)
                         .font(.subheadline.weight(.semibold))
+                }
+                
+                if ipo.issueSizeInCr > 0 {
+                    Spacer()
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("ISSUE SIZE")
+                            .font(.caption2.weight(.medium))
+                            .foregroundColor(.secondary)
+                        Text(ipo.displayIssueSize)
+                            .font(.subheadline.weight(.semibold))
+                    }
                 }
                 
                 Spacer()
