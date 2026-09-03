@@ -1,0 +1,8 @@
+# Forwarding entrypoint for root-level deployment on Render / Railway
+import sys
+import os
+
+# Add backend directory to Python sys.path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
+
+from main import app
