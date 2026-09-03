@@ -32,11 +32,34 @@ def clean_company_name(raw: str) -> str:
             
     return cleaned.strip()
 
+import json
+import os
+
 class IPOScraper:
     def __init__(self):
         self._cached_ipos: List[Dict[str, Any]] = []
         self._last_fetched: float = 0
         self._cache_ttl = 300  # 5 minutes cache
+        self._cache_file = os.path.join(os.path.dirname(__file__), "data", "live_ipos_cache.json")
+        self._load_disk_cache()
+
+    def _load_disk_cache(self):
+        if os.path.exists(self._cache_file):
+            try:
+                with open(self._cache_file, "r") as f:
+                    self._cached_ipos = json.load(f)
+                    self._last_fetched = time.time()
+                    print(f"[IPOScraper] Loaded {len(self._cached_ipos)} IPOs from disk cache")
+            except Exception as e:
+                print(f"[IPOScraper] Error loading disk cache: {e}")
+
+    def _save_disk_cache(self, ipos: List[Dict[str, Any]]):
+        try:
+            os.makedirs(os.path.dirname(self._cache_file), exist_ok=True)
+            with open(self._cache_file, "w") as f:
+                json.dump(ipos, f, indent=2)
+        except Exception as e:
+            print(f"[IPOScraper] Error saving disk cache: {e}")
 
     def fetch_all_ipos(self, force: bool = False) -> List[Dict[str, Any]]:
         now = time.time()
@@ -47,6 +70,7 @@ class IPOScraper:
         if ipos:
             self._cached_ipos = ipos
             self._last_fetched = now
+            self._save_disk_cache(ipos)
             return ipos
 
         return self._cached_ipos

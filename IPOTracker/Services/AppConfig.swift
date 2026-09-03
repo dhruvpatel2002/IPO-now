@@ -2,11 +2,11 @@ import Foundation
 
 public enum AppConfig {
     // MARK: - API & Backend Configuration
-    /// Scraper backend URLs to try (Wi-Fi LAN IP for iPhone, localhost for Simulator):
+    /// Scraper backend URLs to try (Live Render cloud URL, Mac LAN Wi-Fi IP, and localhost):
     public static var scraperBackendURLs: [String] = [
+        "https://ipo-now.onrender.com",
         "http://192.168.1.6:8000",
-        "http://127.0.0.1:8000",
-        "http://localhost:8000"
+        "http://127.0.0.1:8000"
     ]
     
     /// Fallback Upvaly API Key:
