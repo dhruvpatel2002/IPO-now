@@ -70,32 +70,36 @@ public final class IPO: Identifiable, Codable {
     
     public var status: IPOStatus {
         get {
+            let sRaw = statusRaw.lowercased()
             let now = Date()
             let calendar = Calendar.current
-            
-            // Calculate day start and day end (23:59:59) for opening and closing dates
-            let startOfOpenDay = calendar.startOfDay(for: openingDate)
             let startOfCloseDay = calendar.startOfDay(for: closingDate)
             let endOfCloseDay = calendar.date(byAdding: .day, value: 1, to: startOfCloseDay)?.addingTimeInterval(-1) ?? closingDate
+            let startOfOpenDay = calendar.startOfDay(for: openingDate)
             
-            if now < startOfOpenDay {
-                return .upcoming
-            } else if now <= endOfCloseDay {
-                return .open
-            } else {
-                if let parsed = IPOStatus(rawValue: statusRaw), parsed == .allotmentOut || parsed == .listed {
-                    return parsed
-                }
-                let startOfListingDay = calendar.startOfDay(for: listingDate)
-                if now >= startOfListingDay {
-                    return .listed
-                }
-                let startOfAllotmentDay = calendar.startOfDay(for: allotmentDate)
-                if now >= startOfAllotmentDay {
+            // 1. If past day-end of closing date -> Closed or Allotment Out
+            if now > endOfCloseDay {
+                if sRaw.contains("allot") || now >= calendar.startOfDay(for: allotmentDate) {
                     return .allotmentOut
                 }
                 return .closed
             }
+            
+            // 2. If before opening date or explicitly Upcoming -> Upcoming
+            if sRaw.contains("upcoming") || sRaw.contains("ipou") || sRaw.contains("smeu") || now < startOfOpenDay {
+                return .upcoming
+            }
+            
+            // 3. If within open window (between open day start and close day 23:59:59) -> Open
+            if now <= endOfCloseDay && now >= startOfOpenDay {
+                return .open
+            }
+            
+            if sRaw.contains("closed") || sRaw.contains("smec") || sRaw.contains("ipoc") {
+                return .closed
+            }
+            
+            return .upcoming
         }
         set { statusRaw = newValue.rawValue }
     }

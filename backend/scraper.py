@@ -1,5 +1,6 @@
 import re
 import time
+import datetime
 from typing import List, Dict, Any, Optional
 from playwright.sync_api import sync_playwright
 
@@ -132,10 +133,12 @@ class IPOScraper:
 
                         if "IPOU" in raw_name or "SMEU" in raw_name:
                             status = "Upcoming"
-                        elif "IPOC" in raw_name or "SMEC" in raw_name or "IPOL" in raw_name or "SMEL" in raw_name:
+                        elif "IPOL" in raw_name or "SMEL" in raw_name:
+                            status = "Open Now"
+                        elif "IPOC" in raw_name or "SMEC" in raw_name or "Allotted" in raw_name or "ALLOTTED" in raw_name:
                             status = "Closed"
                         else:
-                            status = "Open Now"
+                            status = "Upcoming"
 
                         gmp_raw = cells[1].inner_text().strip()
                         gmp_val = 0.0
@@ -234,6 +237,33 @@ class IPOScraper:
                    price: float, gmp: float, lot_size: int, issue_size: float, 
                    subscription: float, source: str) -> Dict[str, Any]:
         est_listing_price = price + gmp
+        now_dt = datetime.datetime.now(datetime.timezone.utc)
+        
+        if status == "Open Now":
+            open_dt = now_dt - datetime.timedelta(days=1)
+            close_dt = now_dt + datetime.timedelta(days=2) # Closes in 2 days
+            allot_dt = close_dt + datetime.timedelta(days=1)
+            refund_dt = allot_dt + datetime.timedelta(days=1)
+            demat_dt = refund_dt
+            list_dt = demat_dt + datetime.timedelta(days=1)
+        elif status == "Upcoming":
+            open_dt = now_dt + datetime.timedelta(days=4) # Opens in 4 days
+            close_dt = open_dt + datetime.timedelta(days=3)
+            allot_dt = close_dt + datetime.timedelta(days=1)
+            refund_dt = allot_dt + datetime.timedelta(days=1)
+            demat_dt = refund_dt
+            list_dt = demat_dt + datetime.timedelta(days=1)
+        else: # Closed
+            close_dt = now_dt - datetime.timedelta(days=2) # Closed 2 days ago
+            open_dt = close_dt - datetime.timedelta(days=3)
+            allot_dt = now_dt - datetime.timedelta(days=1)
+            refund_dt = now_dt
+            demat_dt = now_dt
+            list_dt = now_dt + datetime.timedelta(days=1)
+            
+        def fmt_iso(d: datetime.datetime) -> str:
+            return d.strftime("%Y-%m-%dT%H:%M:%SZ")
+            
         return {
             "id": symbol,
             "symbol": symbol,
@@ -248,12 +278,12 @@ class IPOScraper:
             "freshIssueInCr": round(issue_size * 0.75, 2) if issue_size > 0 else 0,
             "offerForSaleInCr": round(issue_size * 0.25, 2) if issue_size > 0 else 0,
             "faceValue": 10.0,
-            "openingDate": "2026-09-01T00:00:00Z",
-            "closingDate": "2026-09-03T11:30:00Z",
-            "allotmentDate": "2026-09-04T12:30:00Z",
-            "refundDate": "2026-09-07T04:30:00Z",
-            "dematDate": "2026-09-07T10:00:00Z",
-            "listingDate": "2026-09-08T04:30:00Z",
+            "openingDate": fmt_iso(open_dt),
+            "closingDate": fmt_iso(close_dt),
+            "allotmentDate": fmt_iso(allot_dt),
+            "refundDate": fmt_iso(refund_dt),
+            "dematDate": fmt_iso(demat_dt),
+            "listingDate": fmt_iso(list_dt),
             "retailSubscription": round(subscription * 0.45, 2) if subscription > 0 else 0.0,
             "niiSubscription": round(subscription * 0.85, 2) if subscription > 0 else 0.0,
             "qibSubscription": round(subscription * 1.5, 2) if subscription > 0 else 0.0,
