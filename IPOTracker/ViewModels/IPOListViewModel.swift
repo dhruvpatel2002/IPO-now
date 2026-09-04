@@ -88,11 +88,16 @@ public final class IPOListViewModel: ObservableObject {
         // 4. Sorting
         switch sortOption {
         case .openingDate:
-            results.sort { $0.openingDate > $1.openingDate }
+            results.sort {
+                if $0.openingDate != $1.openingDate {
+                    return $0.openingDate < $1.openingDate
+                }
+                return $0.closingDate < $1.closingDate
+            }
         case .closingDate:
-            results.sort { $0.closingDate > $1.closingDate }
+            results.sort { $0.closingDate < $1.closingDate }
         case .listingDate:
-            results.sort { $0.listingDate > $1.listingDate }
+            results.sort { $0.listingDate < $1.listingDate }
         }
         
         return results
@@ -105,7 +110,12 @@ public final class IPOListViewModel: ObservableObject {
         do {
             let fetched = try await ipoService.fetchIPOs()
             if !fetched.isEmpty {
-                self.ipos = fetched
+                self.ipos = fetched.sorted {
+                    if $0.openingDate != $1.openingDate {
+                        return $0.openingDate < $1.openingDate
+                    }
+                    return $0.closingDate < $1.closingDate
+                }
             }
         } catch {
             print("Error loading IPOs: \(error)")

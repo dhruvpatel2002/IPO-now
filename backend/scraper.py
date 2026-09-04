@@ -409,6 +409,7 @@ class IPOScraper:
                 "source": "Chittorgarh & InvestorGain"
             })
 
+        results.sort(key=lambda x: (x.get("openingDate", ""), x.get("closingDate", "")))
         return results
 
 scraper = IPOScraper()

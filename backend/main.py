@@ -68,7 +68,7 @@ async def get_ipos(
     force_refresh: bool = Query(False, description="Force fresh web scrape")
 ) -> List[Dict[str, Any]]:
     all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, force_refresh)
-    results = all_ipos
+    results = list(all_ipos)
 
     if ipo_type:
         type_lower = ipo_type.lower()
@@ -83,6 +83,7 @@ async def get_ipos(
         elif cat_lower == "closed":
             results = [i for i in results if "closed" in i.get("statusRaw", "").lower() or "allotment" in i.get("statusRaw", "").lower()]
 
+    results.sort(key=lambda x: (x.get("openingDate", ""), x.get("closingDate", "")))
     return results
 
 @app.get("/api/ipos/{ipo_id}")
