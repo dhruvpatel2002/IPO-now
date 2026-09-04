@@ -106,6 +106,19 @@ public struct IPOCard: View {
                     .padding(.vertical, 4)
                     .background(Color.green.opacity(0.1))
                     .cornerRadius(6)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chart.line.flattrend.xyaxis")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("GMP: 0%")
+                            .font(.caption.weight(.medium))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.secondary.opacity(0.1))
+                    .cornerRadius(6)
                 }
                 
                 if ipo.totalSubscription > 0 {

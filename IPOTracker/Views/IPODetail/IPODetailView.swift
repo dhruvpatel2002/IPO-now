@@ -88,40 +88,38 @@ public struct IPODetailView: View {
                 .padding(.horizontal)
                 
                 // Grey Market Premium (GMP)
-                if ipo.gmp > 0 {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Grey Market Premium (GMP)")
-                            .font(.headline)
-                        
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Current GMP")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                Text("₹\(Int(ipo.gmp))")
-                                    .font(.title3.weight(.bold))
-                                    .foregroundColor(.green)
-                            }
-                            Spacer()
-                            VStack(alignment: .trailing, spacing: 4) {
-                                Text("Est. Listing Price")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                Text("₹\(Int(ipo.expectedListingPrice)) (+\(String(format: "%.1f", ipo.gmpPercentage))%)")
-                                    .font(.title3.weight(.bold))
-                                    .foregroundColor(.green)
-                            }
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Grey Market Premium (GMP)")
+                        .font(.headline)
+                    
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Current GMP")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text(ipo.gmp > 0 ? "+₹\(Int(ipo.gmp))" : "₹0")
+                                .font(.title3.weight(.bold))
+                                .foregroundColor(ipo.gmp > 0 ? .green : .secondary)
                         }
-                        .padding()
-                        .background(Color.green.opacity(0.08))
-                        .cornerRadius(14)
-                        
-                        Text("⚠️ GMP is an unofficial indicator based on grey market trades and does not guarantee listing returns.")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text("Est. Listing Price")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text(ipo.gmp > 0 ? "₹\(Int(ipo.expectedListingPrice)) (+\(String(format: "%.1f", ipo.gmpPercentage))%)" : "\(ipo.displayPriceBand) (0%)")
+                                .font(.title3.weight(.bold))
+                                .foregroundColor(ipo.gmp > 0 ? .green : .secondary)
+                        }
                     }
-                    .padding(.horizontal)
+                    .padding()
+                    .background((ipo.gmp > 0 ? Color.green : Color.secondary).opacity(0.08))
+                    .cornerRadius(14)
+                    
+                    Text("⚠️ GMP is an unofficial indicator based on grey market trades and does not guarantee listing returns.")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
+                .padding(.horizontal)
                 
                 // Company & Promoter Information
                 VStack(alignment: .leading, spacing: 12) {
