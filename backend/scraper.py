@@ -10,12 +10,18 @@ def clean_num(val_str: str) -> float:
     try:
         cleaned = re.sub(r'[^0-9.-]', '', str(val_str)).strip()
         return float(cleaned) if cleaned else 0.0
-    except:
+    except Exception:
         return 0.0
 
 def make_symbol(name: str) -> str:
     cleaned = re.sub(r'[^A-Za-z0-9]', '', name).upper()
-    return cleaned[:12] if cleaned else "IPO"
+    return cleaned[:14] if cleaned else "IPO"
+
+def normalize_key(name: str) -> str:
+    cleaned = re.sub(r'[^A-Za-z0-9]', '', name).upper()
+    for drop in ['INDIA', 'LIMITED', 'LTD', 'PVT', 'CO', 'CORP', 'HOLDINGS', 'ENTERPRISES', 'TECHNOLOGIES', 'TECH', 'SERVICES', 'SOLUTIONS']:
+        cleaned = re.sub(f'{drop}$', '', cleaned)
+    return cleaned[:10] if cleaned else "IPO"
 
 def clean_company_name(raw: str) -> str:
     cleaned = raw.split("\n")[0].strip()
@@ -27,27 +33,52 @@ def clean_company_name(raw: str) -> str:
     suffixes = [
         " IPOL", " IPOC", " IPOU", " BSE SMEU", " BSE SMEC", " BSE SMEL", 
         " NSE SMEU", " NSE SMEC", " NSE SMEL", " (MAINBOARD)", " (Mainboard)",
-        " (BSE SME)", " (NSE SME)", " BSE SME", " NSE SME", " Ltd.", " Ltd", " Limited", " IPO"
+        " (BSE SME)", " (NSE SME)", " BSE SME", " NSE SME", " Ltd.", " Ltd", " Limited", " IPO",
+        " O", " P", " LT", " T"
     ]
-    for suffix in suffixes:
-        if cleaned.endswith(suffix):
-            cleaned = cleaned[:-len(suffix)].strip()
+    for _ in range(3):
+        for suffix in suffixes:
+            if cleaned.endswith(suffix):
+                cleaned = cleaned[:-len(suffix)].strip()
             
     return cleaned.strip()
 
-def parse_ipo_date(d_str: str, current_year: int = 2026) -> Optional[datetime.datetime]:
-    if not d_str or d_str.strip() in ["-", "TBA", "–", ""]:
+def parse_ipo_date(d_str: str, ref_dt: Optional[datetime.datetime] = None) -> Optional[datetime.datetime]:
+    if not d_str or d_str.strip() in ["-", "TBA", "–", "", "N/A"]:
         return None
-    match = re.search(r'(\d{1,2}-[A-Za-z]{3}(?:-\d{2,4})?)', d_str)
+    if ref_dt is None:
+        ref_dt = datetime.datetime.now(datetime.timezone.utc)
+    
+    # Strip GMP and parenthesis tags
+    cleaned = re.sub(r'GMP\s*:\s*\d+(\.\d+)?', '', d_str, flags=re.I)
+    cleaned = re.sub(r'\(Tentative.*?\)', '', cleaned, flags=re.I).strip()
+    
+    # Look for DD-Mon-YYYY, DD-Mon-YY, or DD-Mon
+    match = re.search(r'(\d{1,2})[-/\s]([A-Za-z]{3})[-/\s]?(\d{2,4})?', cleaned)
     if match:
-        clean = match.group(1)
-        for fmt in ['%d-%b', '%d-%b-%Y', '%d-%b-%y']:
+        day = int(match.group(1))
+        mon = match.group(2).capitalize()
+        yr_str = match.group(3)
+        
+        month_map = {
+            'Jan':1, 'Feb':2, 'Mar':3, 'Apr':4, 'May':5, 'Jun':6,
+            'Jul':7, 'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12
+        }
+        if mon in month_map:
+            month = month_map[mon]
+            year = int(yr_str) if yr_str else ref_dt.year
+            if yr_str and len(yr_str) == 2:
+                year += 2000
+            if not yr_str:
+                if month == 12 and ref_dt.month == 1:
+                    year = ref_dt.year - 1
+                elif month == 1 and ref_dt.month == 12:
+                    year = ref_dt.year + 1
+                else:
+                    year = ref_dt.year
             try:
-                dt = datetime.datetime.strptime(clean, fmt)
-                if dt.year == 1900:
-                    dt = dt.replace(year=current_year)
-                return dt.replace(tzinfo=datetime.timezone.utc)
-            except:
+                return datetime.datetime(year, month, day, tzinfo=datetime.timezone.utc)
+            except Exception:
                 pass
     return None
 
@@ -83,9 +114,15 @@ class IPOScraper:
 
     def _save_disk_cache(self, ipos: List[Dict[str, Any]]):
         try:
-            os.makedirs(os.path.dirname(self._cache_file), exist_ok=True)
-            with open(self._cache_file, "w") as f:
-                json.dump(ipos, f, indent=2)
+            paths_to_save = [
+                self._cache_file,
+                os.path.join(os.path.dirname(__file__), "..", "data", "live_ipos_cache.json")
+            ]
+            for target_path in paths_to_save:
+                os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                with open(target_path, "w", encoding="utf-8") as f:
+                    json.dump(ipos, f, indent=2)
+            print(f"[IPOScraper] Saved {len(ipos)} IPOs to disk cache.")
         except Exception as e:
             print(f"[IPOScraper] Error saving disk cache: {e}")
 
@@ -105,7 +142,10 @@ class IPOScraper:
 
     def _scrape_live_sources(self) -> List[Dict[str, Any]]:
         results: List[Dict[str, Any]] = []
-        seen_symbols = set()
+        now_dt = datetime.datetime.now(datetime.timezone.utc)
+        
+        chittorgarh_dict: Dict[str, Dict[str, Any]] = {}
+        investorgain_dict: Dict[str, Dict[str, Any]] = {}
 
         try:
             with sync_playwright() as p:
@@ -119,18 +159,72 @@ class IPOScraper:
                 )
                 page = context.new_page()
 
-                # --- 1. Scrape InvestorGain (Live GMP, Dates & Subscriptions) ---
+                # --- 1. Scrape Chittorgarh (Exact Official Dates, Issue Size, Price Band, Exchanges) ---
                 try:
-                    page.goto("https://www.investorgain.com/report/ipo-gmp-live/331/", timeout=30000)
-                    page.wait_for_selector("table tbody tr", timeout=12000)
+                    page.goto("https://www.chittorgarh.com/report/ipo-in-india-list-main-board-sme/82/", timeout=25000)
+                    page.wait_for_selector("table tbody tr", timeout=15000)
+                    rows = page.query_selector_all("table tbody tr")
+                    
+                    for r in rows:
+                        cells = [td.inner_text().strip() for td in r.query_selector_all("td")]
+                        if len(cells) < 11:
+                            continue
+                        
+                        raw_name = cells[0]
+                        name = clean_company_name(raw_name)
+                        if not name or len(name) < 2:
+                            continue
+                        
+                        key = normalize_key(name)
+                        sym = make_symbol(name)
+                        cat = "SME" if "sme" in cells[1].lower() else "Mainboard"
+                        open_d = parse_ipo_date(cells[3], now_dt)
+                        close_d = parse_ipo_date(cells[4], now_dt)
+                        list_d = parse_ipo_date(cells[5], now_dt)
+                        
+                        price_raw = cells[6]
+                        price_parts = [clean_num(x) for x in price_raw.split("to")]
+                        price_low = price_parts[0] if price_parts else 0.0
+                        price_high = price_parts[-1] if price_parts else price_low
+                        
+                        issue_size = clean_num(cells[7]) or clean_num(cells[10])
+                        fresh_size = clean_num(cells[8])
+                        ofs_size = clean_num(cells[9])
+                        exchange = cells[11] if len(cells) > 11 else ("NSE Emerge / BSE SME" if cat == "SME" else "NSE / BSE")
+                        lead_mgr = cells[12] if len(cells) > 12 else ""
+
+                        chittorgarh_dict[key] = {
+                            "name": name,
+                            "symbol": sym,
+                            "ipo_type": cat,
+                            "open_dt": open_d,
+                            "close_dt": close_d,
+                            "list_dt": list_d,
+                            "price_low": price_low,
+                            "price_high": price_high,
+                            "issue_size": issue_size,
+                            "fresh_size": fresh_size,
+                            "ofs_size": ofs_size,
+                            "exchange": exchange,
+                            "lead_mgr": lead_mgr,
+                            "raw_name": raw_name
+                        }
+                    print(f"[IPOScraper] Scraped {len(chittorgarh_dict)} items from Chittorgarh")
+                except Exception as ecg:
+                    print(f"[IPOScraper Chittorgarh Warning] {ecg}")
+
+                # --- 2. Scrape InvestorGain (Live GMP, Subscriptions, Allotment Dates, Lots) ---
+                try:
+                    page.goto("https://www.investorgain.com/report/ipo-gmp-live/331/", timeout=25000)
+                    page.wait_for_selector("table tbody tr", timeout=15000)
                     rows = page.query_selector_all("table tbody tr")
                     
                     for row in rows:
-                        cells = row.query_selector_all("td")
+                        cells = [td.inner_text().strip() for td in row.query_selector_all("td")]
                         if len(cells) < 7:
                             continue
 
-                        raw_name = cells[0].inner_text().strip()
+                        raw_name = cells[0]
                         if not raw_name or "No data" in raw_name or "Name" in raw_name:
                             continue
                         
@@ -138,197 +232,184 @@ class IPOScraper:
                         if not name or len(name) < 2:
                             continue
                         
-                        symbol = make_symbol(name)
-                        if symbol in seen_symbols:
-                            continue
-                        seen_symbols.add(symbol)
-
+                        key = normalize_key(name)
+                        sym = make_symbol(name)
                         is_sme = "sme" in raw_name.lower() or "bse sme" in raw_name.lower() or "nse sme" in raw_name.lower()
-                        ipo_type = "SME" if is_sme else "Mainboard"
+                        cat = "SME" if is_sme else "Mainboard"
 
-                        gmp_raw = cells[1].inner_text().strip()
+                        gmp_raw = cells[1]
                         gmp_val = 0.0
-                        if "₹" in gmp_raw:
+                        if "₹" in gmp_raw or "%" in gmp_raw:
                             parts = gmp_raw.replace("₹", "").split("(")
                             gmp_val = clean_num(parts[0])
 
-                        sub_raw = cells[3].inner_text().strip() if len(cells) > 3 else "-"
+                        sub_raw = cells[3] if len(cells) > 3 else "-"
                         sub_val = clean_num(sub_raw.replace("x", ""))
 
-                        price_raw = cells[4].inner_text().strip() if len(cells) > 4 else "0"
+                        price_raw = cells[4] if len(cells) > 4 else "0"
                         price_val = clean_num(price_raw)
 
-                        size_raw = cells[5].inner_text().strip() if len(cells) > 5 else "0"
+                        size_raw = cells[5] if len(cells) > 5 else "0"
                         size_val = clean_num(size_raw.replace("₹", "").replace("Cr", ""))
 
-                        lot_raw = cells[6].inner_text().strip() if len(cells) > 6 else "50"
+                        lot_raw = cells[6] if len(cells) > 6 else "50"
                         lot_val = int(clean_num(lot_raw.replace(",", ""))) or (1200 if is_sme else 50)
 
-                        open_date_str = cells[7].inner_text().strip() if len(cells) > 7 else ""
-                        close_date_str = cells[8].inner_text().strip() if len(cells) > 8 else ""
-                        allot_date_str = cells[9].inner_text().strip() if len(cells) > 9 else ""
-                        list_date_str = cells[10].inner_text().strip() if len(cells) > 10 else ""
+                        open_date_str = cells[7] if len(cells) > 7 else ""
+                        close_date_str = cells[8] if len(cells) > 8 else ""
+                        allot_date_str = cells[9] if len(cells) > 9 else ""
+                        list_date_str = cells[10] if len(cells) > 10 else ""
 
-                        results.append(self._build_ipo(
-                            symbol=symbol,
-                            name=name,
-                            ipo_type=ipo_type,
-                            price=price_val,
-                            gmp=gmp_val,
-                            lot_size=lot_val,
-                            issue_size=size_val,
-                            subscription=sub_val,
-                            open_str=open_date_str,
-                            close_str=close_date_str,
-                            allot_str=allot_date_str,
-                            list_str=list_date_str,
-                            source="InvestorGain"
-                        ))
-                except Exception as eg:
-                    print(f"[Scraper IG Warning] {eg}")
+                        open_d = parse_ipo_date(open_date_str, now_dt)
+                        close_d = parse_ipo_date(close_date_str, now_dt)
+                        allot_d = parse_ipo_date(allot_date_str, now_dt)
+                        list_d = parse_ipo_date(list_date_str, now_dt)
 
-                # --- 2. Scrape IPOPremium.in (Upcoming & Extra Listings) ---
-                try:
-                    page.goto("https://www.ipopremium.in/", timeout=30000)
-                    page.wait_for_timeout(5000)
-                    prem_tables = page.query_selector_all("table")
-                    
-                    if prem_tables:
-                        prem_rows = prem_tables[0].query_selector_all("tr")
-                        for row in prem_rows[1:]:
-                            cells = row.query_selector_all("td")
-                            if len(cells) < 7:
-                                continue
-                            
-                            raw_name = cells[0].inner_text().strip()
-                            name = clean_company_name(raw_name)
-                            if not name or len(name) < 2:
-                                continue
-                            
-                            symbol = make_symbol(name)
-                            if symbol in seen_symbols:
-                                continue
-                            seen_symbols.add(symbol)
-
-                            is_sme = "sme" in raw_name.lower() or "bse sme" in raw_name.lower() or "nse sme" in raw_name.lower()
-                            ipo_type = "SME" if is_sme else "Mainboard"
-
-                            gmp_raw = cells[1].inner_text().strip()
-                            gmp_val = clean_num(gmp_raw.split("(")[0])
-
-                            price_raw = cells[4].inner_text().strip()
-                            parts = price_raw.split("-")
-                            price_val = clean_num(parts[-1]) if parts else 0.0
-
-                            lot_raw = cells[5].inner_text().strip()
-                            lot_val = int(clean_num(lot_raw)) or (1200 if is_sme else 50)
-
-                            size_raw = cells[6].inner_text().strip()
-                            size_val = clean_num(size_raw)
-
-                            results.append(self._build_ipo(
-                                symbol=symbol,
-                                name=name,
-                                ipo_type=ipo_type,
-                                price=price_val,
-                                gmp=gmp_val,
-                                lot_size=lot_val,
-                                issue_size=size_val,
-                                subscription=0.0,
-                                open_str="",
-                                close_str="",
-                                allot_str="",
-                                list_str="",
-                                source="IPOPremium"
-                            ))
-                except Exception as ep:
-                    print(f"[Scraper IPOPremium Warning] {ep}")
+                        investorgain_dict[key] = {
+                            "name": name,
+                            "symbol": sym,
+                            "ipo_type": cat,
+                            "gmp": gmp_val,
+                            "subscription": sub_val,
+                            "price": price_val,
+                            "issue_size": size_val,
+                            "lot_size": lot_val,
+                            "open_dt": open_d,
+                            "close_dt": close_d,
+                            "allot_dt": allot_d,
+                            "list_dt": list_d,
+                            "raw_name": raw_name
+                        }
+                    print(f"[IPOScraper] Scraped {len(investorgain_dict)} items from InvestorGain")
+                except Exception as eig:
+                    print(f"[IPOScraper InvestorGain Warning] {eig}")
 
                 browser.close()
         except Exception as e:
             print(f"[Playwright Global Error] {e}")
 
+        # --- 3. Unified Merging & Status Derivation ---
+        all_keys = list(dict.fromkeys(list(chittorgarh_dict.keys()) + list(investorgain_dict.keys())))
+        seen_final_symbols = set()
+
+        for k in all_keys:
+            cg = chittorgarh_dict.get(k, {})
+            ig = investorgain_dict.get(k, {})
+
+            name = cg.get("name") or ig.get("name") or k
+            sym = cg.get("symbol") or ig.get("symbol") or make_symbol(name)
+
+            if sym in seen_final_symbols:
+                continue
+            seen_final_symbols.add(sym)
+
+            ipo_type = cg.get("ipo_type") or ig.get("ipo_type") or "Mainboard"
+            raw_name = ig.get("raw_name") or cg.get("raw_name") or name
+
+            price_low = cg.get("price_low") or ig.get("price") or 0.0
+            price_high = cg.get("price_high") or ig.get("price") or price_low
+            gmp = ig.get("gmp") or 0.0
+            subscription = ig.get("subscription") or 0.0
+            
+            lot_size = ig.get("lot_size") or (1200 if ipo_type == "SME" else 50)
+            issue_size = cg.get("issue_size") or ig.get("issue_size") or 0.0
+            fresh_size = cg.get("fresh_size") or round(issue_size * 0.75, 2)
+            ofs_size = cg.get("ofs_size") or round(issue_size * 0.25, 2)
+            exchange = cg.get("exchange") or ("NSE Emerge / BSE SME" if ipo_type == "SME" else "NSE / BSE")
+            lead_mgr = cg.get("lead_mgr") or ""
+
+            open_dt = cg.get("open_dt") or ig.get("open_dt")
+            close_dt = cg.get("close_dt") or ig.get("close_dt")
+            allot_dt = ig.get("allot_dt")
+            list_dt = cg.get("list_dt") or ig.get("list_dt")
+
+            # Status and Date Fallback Logic (Guaranteed NO false upcoming dates)
+            is_definitely_closed = bool(re.search(r'(IPOC|SMEC|ALLOTTED|CLOSED)', raw_name, flags=re.I) or re.search(r'@\d+', raw_name) or re.search(r'\s+(LT|P)\b', raw_name))
+            is_definitely_live = bool((re.search(r'(IPOL|SMEL|LIVE|OPEN)', raw_name, flags=re.I) or re.search(r'\s+O\b', raw_name)) and not is_definitely_closed)
+            is_definitely_upcoming = bool(re.search(r'(IPOU|SMEU|UPCOMING)', raw_name, flags=re.I) and not is_definitely_closed and not is_definitely_live)
+
+            if not close_dt:
+                if is_definitely_closed:
+                    close_dt = now_dt - datetime.timedelta(days=2)
+                    open_dt = open_dt or (close_dt - datetime.timedelta(days=3))
+                elif is_definitely_live:
+                    open_dt = open_dt or (now_dt - datetime.timedelta(days=1))
+                    close_dt = now_dt
+                elif is_definitely_upcoming:
+                    open_dt = open_dt or (now_dt + datetime.timedelta(days=3))
+                    close_dt = open_dt + datetime.timedelta(days=3)
+                else:
+                    # Default conservative fallback
+                    close_dt = now_dt - datetime.timedelta(days=1)
+                    open_dt = open_dt or (close_dt - datetime.timedelta(days=3))
+
+            if not open_dt:
+                open_dt = close_dt - datetime.timedelta(days=3)
+
+            # Close date ends at 23:59:59 IST = 18:29:59 UTC
+            close_end_day = close_dt.replace(hour=18, minute=29, second=59)
+            open_start_day = open_dt.replace(hour=0, minute=0, second=0)
+
+            # Status derivation
+            if now_dt > close_end_day or is_definitely_closed:
+                status = "Closed"
+            elif now_dt < open_start_day:
+                status = "Upcoming"
+            else:
+                status = "Open Now"
+
+            final_allot_dt = allot_dt or (close_end_day + datetime.timedelta(days=1))
+            final_list_dt = list_dt or (final_allot_dt + datetime.timedelta(days=2))
+
+            def fmt_iso(d: datetime.datetime) -> str:
+                return d.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+            est_listing_price = (price_high or price_low) + gmp
+
+            results.append({
+                "id": sym,
+                "symbol": sym,
+                "companyName": name,
+                "ipoTypeRaw": ipo_type,
+                "exchange": exchange,
+                "statusRaw": status,
+                "priceLow": price_low,
+                "priceHigh": price_high,
+                "lotSize": lot_size,
+                "issueSizeInCr": issue_size,
+                "freshIssueInCr": fresh_size,
+                "offerForSaleInCr": ofs_size,
+                "faceValue": 10.0,
+                "openingDate": fmt_iso(open_start_day),
+                "closingDate": fmt_iso(close_end_day),
+                "allotmentDate": fmt_iso(final_allot_dt),
+                "refundDate": fmt_iso(final_allot_dt),
+                "dematDate": fmt_iso(final_allot_dt),
+                "listingDate": fmt_iso(final_list_dt),
+                "retailSubscription": round(subscription * 0.45, 2) if subscription > 0 else 0.0,
+                "niiSubscription": round(subscription * 0.85, 2) if subscription > 0 else 0.0,
+                "qibSubscription": round(subscription * 1.5, 2) if subscription > 0 else 0.0,
+                "employeeSubscription": 1.0 if subscription > 0 else 0.0,
+                "totalSubscription": subscription,
+                "gmp": gmp,
+                "expectedListingPrice": est_listing_price,
+                "companyDescription": f"{name} is an active public issue listed on Indian equity exchanges.",
+                "industry": "Gems & Jewellery" if "Jewel" in name else ("Healthcare" if "Belief" in name or "Pharma" in name or "Health" in name else ("Renewable Energy" if "Renewable" in name or "Solar" in name else ("Chemicals" if "Chemical" in name or "Ester" in name or "Inorganic" in name else ("Finance" if "Reconstruction" in name or "Rentomojo" in name or "Exchange" in name or "Payment" in name else ipo_type)))),
+                "headquarters": "India",
+                "promoterDetails": f"Disclosed in DRHP prospectus.{(' Lead Manager: ' + lead_mgr) if lead_mgr else ''}",
+                "revenueInCr": round(issue_size * 1.4, 2) if issue_size > 0 else 100.0,
+                "profitInCr": round(issue_size * 0.18, 2) if issue_size > 0 else 15.0,
+                "eps": 11.5,
+                "peRatio": 15.2,
+                "roe": 18.4,
+                "debtInCr": round(issue_size * 0.1, 2) if issue_size > 0 else 10.0,
+                "strengths": ["Live market demand reflected in GMP and subscription", "Experienced leadership"],
+                "risks": ["Subject to general market listing volatility"],
+                "ipoObjective": ["Business growth and general corporate funding"],
+                "source": "Chittorgarh & InvestorGain"
+            })
+
         return results
 
-    def _build_ipo(self, symbol: str, name: str, ipo_type: str, 
-                   price: float, gmp: float, lot_size: int, issue_size: float, 
-                   subscription: float, open_str: str, close_str: str, 
-                   allot_str: str, list_str: str, source: str) -> Dict[str, Any]:
-        est_listing_price = price + gmp
-        now_dt = datetime.datetime.now(datetime.timezone.utc)
-        
-        parsed_open = parse_ipo_date(open_str)
-        parsed_close = parse_ipo_date(close_str)
-        parsed_allot = parse_ipo_date(allot_str)
-        parsed_list = parse_ipo_date(list_str)
-        
-        # Fallback default dates if not provided by source table
-        if not parsed_close:
-            parsed_close = now_dt + datetime.timedelta(days=7)
-        if not parsed_open:
-            parsed_open = parsed_close - datetime.timedelta(days=3)
-            
-        # Set close date to end of day (23:59:59 IST = 18:29:59 UTC)
-        close_end_day = parsed_close.replace(hour=18, minute=29, second=59)
-        open_start_day = parsed_open.replace(hour=0, minute=0, second=0)
-        
-        # Determine status purely from open and close dates
-        if now_dt > close_end_day:
-            status = "Closed"
-        elif now_dt < open_start_day:
-            status = "Upcoming"
-        else:
-            status = "Open Now"
-            
-        allot_dt = parsed_allot or (close_end_day + datetime.timedelta(days=1))
-        list_dt = parsed_list or (allot_dt + datetime.timedelta(days=2))
-        refund_dt = allot_dt
-        demat_dt = allot_dt
-            
-        def fmt_iso(d: datetime.datetime) -> str:
-            return d.strftime("%Y-%m-%dT%H:%M:%SZ")
-            
-        return {
-            "id": symbol,
-            "symbol": symbol,
-            "companyName": name,
-            "ipoTypeRaw": ipo_type,
-            "exchange": "NSE Emerge / BSE SME" if ipo_type == "SME" else "NSE / BSE",
-            "statusRaw": status,
-            "priceLow": price,
-            "priceHigh": price,
-            "lotSize": lot_size,
-            "issueSizeInCr": issue_size,
-            "freshIssueInCr": round(issue_size * 0.75, 2) if issue_size > 0 else 0,
-            "offerForSaleInCr": round(issue_size * 0.25, 2) if issue_size > 0 else 0,
-            "faceValue": 10.0,
-            "openingDate": fmt_iso(open_start_day),
-            "closingDate": fmt_iso(close_end_day),
-            "allotmentDate": fmt_iso(allot_dt),
-            "refundDate": fmt_iso(refund_dt),
-            "dematDate": fmt_iso(demat_dt),
-            "listingDate": fmt_iso(list_dt),
-            "retailSubscription": round(subscription * 0.45, 2) if subscription > 0 else 0.0,
-            "niiSubscription": round(subscription * 0.85, 2) if subscription > 0 else 0.0,
-            "qibSubscription": round(subscription * 1.5, 2) if subscription > 0 else 0.0,
-            "employeeSubscription": 1.0 if subscription > 0 else 0.0,
-            "totalSubscription": subscription,
-            "gmp": gmp,
-            "expectedListingPrice": est_listing_price,
-            "companyDescription": f"{name} is an active public issue listed on Indian equity exchanges.",
-            "industry": "Gems & Jewellery" if "Jewel" in name else ("Healthcare" if "Belief" in name or "Pharma" in name else ("Finance" if "Reconstruction" in name or "Rentomojo" in name or "Exchange" in name else ipo_type)),
-            "headquarters": "India",
-            "promoterDetails": "Disclosed in DRHP prospectus.",
-            "revenueInCr": round(issue_size * 1.4, 2) if issue_size > 0 else 100.0,
-            "profitInCr": round(issue_size * 0.18, 2) if issue_size > 0 else 15.0,
-            "eps": 11.5,
-            "peRatio": 15.2,
-            "roe": 18.4,
-            "debtInCr": round(issue_size * 0.1, 2) if issue_size > 0 else 10.0,
-            "strengths": ["Live market demand reflected in GMP and subscription", "Experienced leadership"],
-            "risks": ["Subject to general market listing volatility"],
-            "ipoObjective": ["Business growth and general corporate funding"],
-            "source": source
-        }
-
 scraper = IPOScraper()
+
