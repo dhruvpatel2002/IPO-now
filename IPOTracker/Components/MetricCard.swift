@@ -30,23 +30,10 @@ public extension Color {
     }
 }
 
-// MARK: - Typography (Helvetica Unified Font System)
+// MARK: - Typography Helper (Native iOS System Font)
 public extension Font {
     static func helvetica(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        switch weight {
-        case .heavy, .black:
-            return .custom("Helvetica-Bold", size: size)
-        case .bold:
-            return .custom("Helvetica-Bold", size: size)
-        case .semibold:
-            return .custom("HelveticaNeue-Medium", size: size)
-        case .medium:
-            return .custom("HelveticaNeue-Medium", size: size)
-        case .light, .ultraLight, .thin:
-            return .custom("Helvetica-Light", size: size)
-        default:
-            return .custom("Helvetica", size: size)
-        }
+        .system(size: size, weight: weight)
     }
 }
 
@@ -76,28 +63,28 @@ public struct MetricCard: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(title)
-                    .font(.helvetica(12, weight: .regular))
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundColor(.secondary)
                 Spacer()
                 if let iconName {
                     Image(systemName: iconName)
-                        .font(.helvetica(12, weight: .regular))
+                        .font(.system(size: 12, weight: .regular))
                         .foregroundColor(accentColor)
                 }
             }
             
             Text(value)
-                .font(.helvetica(17, weight: .bold))
+                .font(.system(size: 17, weight: .bold))
                 .foregroundColor(.primary)
             
             if let subtitle {
                 Text(subtitle)
-                    .font(.helvetica(11, weight: .regular))
+                    .font(.system(size: 11, weight: .regular))
                     .foregroundColor(.secondary)
             }
         }
         .padding(12)
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(Color(UIColor.secondarySystemGroupedBackground))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -147,7 +134,7 @@ public struct BlockMetricCard: View {
             // Header: Title + Optional Live Badge (No icon in front of text)
             HStack(alignment: .top) {
                 Text(title)
-                    .font(.helvetica(14, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white.opacity(0.95))
                     .lineLimit(1)
                 
@@ -159,7 +146,7 @@ public struct BlockMetricCard: View {
                             .fill(Color.white)
                             .frame(width: 5, height: 5)
                         Text("LIVE")
-                            .font(.helvetica(9, weight: .heavy))
+                            .font(.system(size: 9, weight: .heavy))
                             .foregroundColor(.white)
                     }
                     .padding(.horizontal, 6)
@@ -176,12 +163,12 @@ public struct BlockMetricCard: View {
             // Value & Subtitle
             VStack(alignment: .leading, spacing: 2) {
                 Text(value)
-                    .font(.helvetica(32, weight: .heavy))
+                    .font(.system(size: 32, weight: .heavy))
                     .foregroundColor(.white)
                 
                 if let subtitle {
                     Text(subtitle)
-                        .font(.helvetica(11, weight: .medium))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.white.opacity(0.85))
                         .lineLimit(1)
                 }
@@ -194,7 +181,6 @@ public struct BlockMetricCard: View {
             HStack {
                 switch visualType {
                 case .bars:
-                    // Wave / soundwave bars on left
                     HStack(alignment: .bottom, spacing: 3.5) {
                         RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.4)).frame(width: 3.5, height: 8)
                         RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.6)).frame(width: 3.5, height: 15)
@@ -205,7 +191,6 @@ public struct BlockMetricCard: View {
                     }
                     .frame(height: 22)
                 case .ring:
-                    // Circular progress ring on left
                     ZStack {
                         Circle()
                             .stroke(Color.white.opacity(0.25), lineWidth: 3.5)
@@ -217,7 +202,6 @@ public struct BlockMetricCard: View {
                             .rotationEffect(.degrees(-90))
                     }
                 case .dots:
-                    // Dot matrix grid on left
                     HStack(spacing: 3.5) {
                         VStack(spacing: 3.5) {
                             Circle().fill(Color.white.opacity(0.4)).frame(width: 4, height: 4)
@@ -236,7 +220,6 @@ public struct BlockMetricCard: View {
                         }
                     }
                 case .meter:
-                    // Mini segmented meter on left
                     HStack(spacing: 3) {
                         ForEach(0..<5) { index in
                             RoundedRectangle(cornerRadius: 2)
@@ -257,7 +240,6 @@ public struct BlockMetricCard: View {
     }
 }
 
-// Backward compatibility alias for views referencing GradientMetricCard
 public typealias GradientMetricCard = BlockMetricCard
 
 // MARK: - Primary Action Button

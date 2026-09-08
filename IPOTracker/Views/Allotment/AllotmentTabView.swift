@@ -45,7 +45,7 @@ public struct AllotmentTabView: View {
                                         .foregroundColor(.secondary)
                                 }
                                 .padding(14)
-                                .background(Color(UIColor.tertiarySystemBackground))
+                                .background(Color(UIColor.tertiarySystemGroupedBackground))
                                 .cornerRadius(12)
                             }
                         }
@@ -75,7 +75,7 @@ public struct AllotmentTabView: View {
                                                 .background(
                                                     isSelected ?
                                                     Color.brandPrimary :
-                                                    Color(UIColor.tertiarySystemBackground)
+                                                    Color(UIColor.tertiarySystemGroupedBackground)
                                                 )
                                                 .foregroundColor(isSelected ? .white : .primary)
                                                 .cornerRadius(6)
@@ -101,13 +101,14 @@ public struct AllotmentTabView: View {
                                 .textInputAutocapitalization(.characters)
                                 .autocorrectionDisabled()
                                 .padding(14)
-                                .background(Color(UIColor.tertiarySystemBackground))
+                                .background(Color(UIColor.tertiarySystemGroupedBackground))
                                 .cornerRadius(12)
                             
                             if let error = viewModel.validationError {
                                 Text(error)
                                     .font(.caption)
                                     .foregroundColor(.red)
+                                    .padding(.top, 2)
                             }
                         }
                         
@@ -125,8 +126,9 @@ public struct AllotmentTabView: View {
                         }
                     }
                     .padding(18)
-                    .background(Color(UIColor.secondarySystemBackground))
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
                     .cornerRadius(18)
+                    .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
                     
                     // Quick Action: Recent Allotments
                     VStack(alignment: .leading, spacing: 12) {
@@ -153,19 +155,20 @@ public struct AllotmentTabView: View {
                                         .font(.caption.weight(.semibold))
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(Color.accentColor.opacity(0.12))
-                                        .foregroundColor(.accentColor)
+                                        .background(Color.brandPrimary.opacity(0.12))
+                                        .foregroundColor(.brandPrimary)
                                         .cornerRadius(8)
                                 }
                             }
                             .padding(14)
-                            .background(Color(UIColor.secondarySystemBackground))
+                            .background(Color(UIColor.secondarySystemGroupedBackground))
                             .cornerRadius(12)
                         }
                     }
                 }
                 .padding()
             }
+            .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Check Allotment")
             .task {
                 await viewModel.loadData()

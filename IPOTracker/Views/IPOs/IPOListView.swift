@@ -2,6 +2,8 @@ import SwiftUI
 
 public struct IPOListView: View {
     @StateObject private var viewModel: IPOListViewModel
+    @State private var selectedIPOForSummary: IPO?
+    @State private var selectedIPOForDetail: IPO?
     @State private var selectedIPOForAllotment: IPO?
     @State private var isSearchPresented: Bool = false
     @FocusState private var isSearchFocused: Bool
@@ -12,40 +14,12 @@ public struct IPOListView: View {
     
     public var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Header Area with Expanding Native iOS Glass Search Bar
-                HStack(spacing: 12) {
-                    if !isSearchPresented {
-                        Text("IPOs")
-                            .font(.title2.weight(.bold))
-                            .foregroundColor(.primary)
-                            .transition(.opacity.combined(with: .move(edge: .leading)))
-                        
-                        Spacer()
-                        
-                        Button {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                isSearchPresented = true
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                isSearchFocused = true
-                            }
-                        } label: {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.primary)
-                                .frame(width: 38, height: 38)
-                                .background(.ultraThinMaterial)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                                )
-                                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
-                        }
-                        .transition(.scale.combined(with: .opacity))
-                    } else {
-                        // Expanded Native iOS Glass Search Bar
+            ScrollView {
+                VStack(spacing: 16) {
+                    
+                    // Search Bar & Filter Controls
+                    VStack(spacing: 12) {
+                        // Native Styled Search Bar
                         HStack(spacing: 10) {
                             Image(systemName: "magnifyingglass")
                                 .font(.system(size: 15, weight: .medium))
@@ -57,121 +31,91 @@ public struct IPOListView: View {
                                 .focused($isSearchFocused)
                                 .autocorrectionDisabled()
                             
-                            Button {
-                                if !viewModel.searchText.isEmpty {
+                            if !viewModel.searchText.isEmpty {
+                                Button {
                                     viewModel.searchText = ""
-                                } else {
-                                    isSearchFocused = false
-                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                        isSearchPresented = false
-                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.secondary)
                                 }
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.secondary)
                             }
                         }
                         .padding(.horizontal, 14)
-                        .padding(.vertical, 9)
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(10)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.primary.opacity(0.12), lineWidth: 1)
-                        )
-                        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 3)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 8)
-                .background(Color(UIColor.systemBackground))
-                
-                // Top Level: Primary Category Tabs (Ongoing, Upcoming, Closed)
-                HStack(spacing: 0) {
-                    ForEach(IPOCategory.allCases) { category in
-                        let isSelected = viewModel.selectedCategory == category
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                viewModel.selectedCategory = category
+                        .padding(.vertical, 10)
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
+                        .cornerRadius(12)
+                        
+                        // Primary Category Tabs (Ongoing, Upcoming, Closed)
+                        HStack(spacing: 0) {
+                            ForEach(IPOCategory.allCases) { category in
+                                let isSelected = viewModel.selectedCategory == category
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        viewModel.selectedCategory = category
+                                    }
+                                } label: {
+                                    VStack(spacing: 8) {
+                                        HStack(spacing: 5) {
+                                            Text(category.rawValue)
+                                                .font(.subheadline.weight(isSelected ? .bold : .medium))
+                                            
+                                            Text("\(viewModel.countForCategory(category))")
+                                                .font(.system(size: 11, weight: .bold))
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 2)
+                                                .background(
+                                                    isSelected ?
+                                                    Color.brandPrimary.opacity(0.18) :
+                                                    Color.secondary.opacity(0.12)
+                                                )
+                                                .foregroundColor(isSelected ? .brandPrimary : .secondary)
+                                                .cornerRadius(5)
+                                        }
+                                        .foregroundColor(isSelected ? .primary : .secondary)
+                                        .frame(maxWidth: .infinity)
+                                        
+                                        // Sliding Indicator
+                                        Rectangle()
+                                            .fill(isSelected ? Color.brandPrimary : Color.clear)
+                                            .frame(height: 2.5)
+                                            .cornerRadius(2)
+                                    }
+                                }
+                                .buttonStyle(.plain)
                             }
-                        } label: {
-                            VStack(spacing: 8) {
-                                HStack(spacing: 5) {
-                                    Text(category.rawValue)
-                                        .font(.subheadline.weight(isSelected ? .bold : .medium))
-                                    
-                                    Text("\(viewModel.countForCategory(category))")
-                                        .font(.system(size: 11, weight: .bold))
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
+                        }
+                        
+                        // Sub-Segment Filter Chips (All, Mainboard, SME)
+                        HStack(spacing: 8) {
+                            Spacer()
+                            ForEach(IPOSegmentFilter.allCases) { segment in
+                                let isSelected = viewModel.selectedSegment == segment
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        viewModel.selectedSegment = segment
+                                    }
+                                } label: {
+                                    Text(segment.rawValue)
+                                        .font(.caption.weight(isSelected ? .bold : .medium))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
                                         .background(
                                             isSelected ?
-                                            Color.brandPrimary.opacity(0.18) :
-                                            Color.secondary.opacity(0.12)
+                                            Color.brandPrimary :
+                                            Color(UIColor.secondarySystemGroupedBackground)
                                         )
-                                        .foregroundColor(isSelected ? .brandPrimary : .secondary)
-                                        .cornerRadius(5)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .stroke((isSelected ? Color.brandPrimary : Color.secondary).opacity(0.2), lineWidth: 0.8)
-                                        )
+                                        .foregroundColor(isSelected ? .white : .primary)
+                                        .cornerRadius(8)
                                 }
-                                .foregroundColor(isSelected ? .primary : .secondary)
-                                .frame(maxWidth: .infinity)
-                                
-                                // Sliding Underline Indicator
-                                Rectangle()
-                                    .fill(isSelected ? Color.brandPrimary : Color.clear)
-                                    .frame(height: 2.5)
-                                    .cornerRadius(2)
+                                .buttonStyle(.plain)
                             }
                         }
-                        .buttonStyle(.plain)
                     }
-                }
-                .padding(.top, 4)
-                .background(Color(UIColor.systemBackground))
-                
-                Divider()
-                
-                // Second Level: Sub-Segment Filters (All, Mainboard, SME)
-                HStack(spacing: 10) {
-                    Spacer()
-                    ForEach(IPOSegmentFilter.allCases) { segment in
-                        let isSelected = viewModel.selectedSegment == segment
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                viewModel.selectedSegment = segment
-                            }
-                        } label: {
-                            Text(segment.rawValue)
-                                .font(.caption.weight(isSelected ? .bold : .medium))
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(
-                                    isSelected ?
-                                    Color.brandPrimary :
-                                    Color(UIColor.secondarySystemBackground)
-                                )
-                                .foregroundColor(isSelected ? .white : .primary)
-                                .cornerRadius(6)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(isSelected ? Color.brandPrimary : Color.primary.opacity(0.08), lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(Color(UIColor.systemBackground))
-                
-                // Content Area
-                ScrollView {
+                    .padding(.horizontal, 16)
+                    .padding(.top, 4)
+                    
+                    // IPO Card List
                     LazyVStack(spacing: 14) {
                         if viewModel.isLoading && viewModel.ipos.isEmpty {
                             ForEach(0..<4, id: \.self) { _ in
@@ -189,11 +133,13 @@ public struct IPOListView: View {
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
                             }
-                            .padding(.top, 70)
+                            .padding(.top, 50)
                             .padding(.horizontal)
                         } else {
                             ForEach(viewModel.filteredIPOs) { ipo in
-                                NavigationLink(destination: IPODetailView(ipo: ipo)) {
+                                Button {
+                                    selectedIPOForSummary = ipo
+                                } label: {
                                     IPOCard(ipo: ipo) {
                                         selectedIPOForAllotment = ipo
                                     }
@@ -203,13 +149,23 @@ public struct IPOListView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 12)
                     .padding(.bottom, 24)
                 }
             }
-            .navigationBarHidden(true)
+            .background(Color(UIColor.systemGroupedBackground))
+            .navigationTitle("IPOs")
+            .sheet(item: $selectedIPOForSummary) { ipo in
+                IPOQuickSummarySheet(ipo: ipo) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        selectedIPOForDetail = ipo
+                    }
+                }
+            }
             .sheet(item: $selectedIPOForAllotment) { ipo in
                 AllotmentCheckerSheet(ipo: ipo)
+            }
+            .navigationDestination(item: $selectedIPOForDetail) { ipo in
+                IPODetailView(ipo: ipo)
             }
             .task {
                 await viewModel.loadData()

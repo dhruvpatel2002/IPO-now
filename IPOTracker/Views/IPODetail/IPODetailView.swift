@@ -107,7 +107,7 @@ public struct IPODetailView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(12)
-                        .background(Color(UIColor.secondarySystemBackground))
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
                         .cornerRadius(12)
                         
                         // 2. Listed Price
@@ -155,7 +155,7 @@ public struct IPODetailView: View {
                             .padding(12)
                             .background(
                                 (ipo.currentGainPercentage ?? 0) >= 0 ?
-                                Color.blue.opacity(0.08) : Color.red.opacity(0.08)
+                                Color.brandPrimary.opacity(0.08) : Color.red.opacity(0.08)
                             )
                             .cornerRadius(12)
                         }
@@ -175,7 +175,7 @@ public struct IPODetailView: View {
                                 .foregroundColor(.secondary)
                             Text(ipo.gmp > 0 ? "+₹\(Int(ipo.gmp))" : "₹0")
                                 .font(.title3.weight(.bold))
-                                .foregroundColor(ipo.gmp > 0 ? .green : .secondary)
+                                .foregroundColor(ipo.gmp > 0 ? Color(hex: "10B981") : .secondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 4) {
@@ -184,11 +184,11 @@ public struct IPODetailView: View {
                                 .foregroundColor(.secondary)
                             Text(ipo.gmp > 0 ? "₹\(Int(ipo.expectedListingPrice)) (+\(String(format: "%.1f", ipo.gmpPercentage))%)" : "\(ipo.displayPriceBand) (0%)")
                                 .font(.title3.weight(.bold))
-                                .foregroundColor(ipo.gmp > 0 ? .green : .secondary)
+                                .foregroundColor(ipo.gmp > 0 ? Color(hex: "10B981") : .secondary)
                         }
                     }
                     .padding()
-                    .background((ipo.gmp > 0 ? Color.green : Color.secondary).opacity(0.08))
+                    .background((ipo.gmp > 0 ? Color(hex: "10B981") : Color.secondary).opacity(0.1))
                     .cornerRadius(14)
                     
                     Text("⚠️ GMP is an unofficial indicator based on grey market trades and does not guarantee listing returns.")
@@ -229,7 +229,7 @@ public struct IPODetailView: View {
                         }
                     }
                     .padding()
-                    .background(Color(UIColor.secondarySystemBackground))
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
                     .cornerRadius(16)
                 }
                 .padding(.horizontal)
@@ -250,9 +250,9 @@ public struct IPODetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(ipo.ipoObjective, id: \.self) { objective in
                             HStack(alignment: .top, spacing: 8) {
-                                Image(systemName: "checkmark.circle")
+                                Image(systemName: "checkmark.circle.fill")
                                     .font(.caption)
-                                    .foregroundColor(.accentColor)
+                                    .foregroundColor(.brandPrimary)
                                 Text(objective)
                                     .font(.caption)
                                     .foregroundColor(.primary)
@@ -261,7 +261,7 @@ public struct IPODetailView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(UIColor.secondarySystemBackground))
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
                     .cornerRadius(16)
                 }
                 .padding(.horizontal)
@@ -300,7 +300,7 @@ public struct IPODetailView: View {
                         }
                     }
                     .padding()
-                    .background(Color(UIColor.secondarySystemBackground))
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
                     .cornerRadius(16)
                 }
                 .padding(.horizontal)
@@ -308,6 +308,7 @@ public struct IPODetailView: View {
             }
             .padding(.top)
         }
+        .background(Color(UIColor.systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $viewModel.showAllotmentSheet) {
             AllotmentCheckerSheet(ipo: ipo)

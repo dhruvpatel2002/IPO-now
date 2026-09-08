@@ -2,6 +2,8 @@ import SwiftUI
 
 public struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
+    @State private var selectedIPOForSummary: IPO?
+    @State private var selectedIPOForDetail: IPO?
     @State private var selectedIPOForAllotment: IPO?
     
     public init() {}
@@ -15,7 +17,7 @@ public struct HomeView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         HStack {
                             Text("Market Dashboard")
-                                .font(.helvetica(22, weight: .bold))
+                                .font(.system(size: 20, weight: .bold))
                             
                             Spacer()
                             
@@ -25,7 +27,7 @@ public struct HomeView: View {
                                         .fill(Color.brandPrimary)
                                         .frame(width: 6, height: 6)
                                     Text("\(viewModel.openCount) LIVE")
-                                        .font(.helvetica(10, weight: .heavy))
+                                        .font(.system(size: 10, weight: .heavy))
                                         .foregroundColor(.brandPrimary)
                                 }
                                 .padding(.horizontal, 8)
@@ -89,12 +91,12 @@ public struct HomeView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         HStack {
                             Text("Recent Live Actions")
-                                .font(.helvetica(18, weight: .bold))
+                                .font(.system(size: 18, weight: .bold))
                             
                             Spacer()
                             
                             Text("\(viewModel.ipos.count) Total")
-                                .font(.helvetica(12, weight: .bold))
+                                .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(.secondary)
                         }
                         .padding(.horizontal)
@@ -103,14 +105,16 @@ public struct HomeView: View {
                             VStack(spacing: 12) {
                                 ProgressView()
                                 Text("Loading live market actions...")
-                                    .font(.helvetica(14, weight: .medium))
+                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(.secondary)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 40)
                         } else {
                             ForEach(viewModel.ipos) { ipo in
-                                NavigationLink(destination: IPODetailView(ipo: ipo)) {
+                                Button {
+                                    selectedIPOForSummary = ipo
+                                } label: {
                                     IPOCard(ipo: ipo) {
                                         selectedIPOForAllotment = ipo
                                     }
@@ -125,9 +129,18 @@ public struct HomeView: View {
             }
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Dashboard")
-            .navigationBarTitleDisplayMode(.inline)
+            .sheet(item: $selectedIPOForSummary) { ipo in
+                IPOQuickSummarySheet(ipo: ipo) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        selectedIPOForDetail = ipo
+                    }
+                }
+            }
             .sheet(item: $selectedIPOForAllotment) { ipo in
                 AllotmentCheckerSheet(ipo: ipo)
+            }
+            .navigationDestination(item: $selectedIPOForDetail) { ipo in
+                IPODetailView(ipo: ipo)
             }
             .task {
                 await viewModel.loadData()
@@ -138,4 +151,3 @@ public struct HomeView: View {
         }
     }
 }
-

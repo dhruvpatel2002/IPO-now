@@ -68,7 +68,7 @@ public struct StatusBadge: View {
             }
             
             Text(displayTitle)
-                .font(.helvetica(12, weight: .bold))
+                .font(.system(size: 12, weight: .bold))
                 .foregroundColor(badgeColor)
         }
     }
