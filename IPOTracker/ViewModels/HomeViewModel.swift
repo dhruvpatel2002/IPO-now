@@ -19,6 +19,14 @@ public final class HomeViewModel: ObservableObject {
         ipos.filter { $0.status == .open }.count
     }
     
+    public var closingTodayCount: Int {
+        let count = ipos.filter { ipo in
+            guard ipo.status == .open else { return false }
+            return Calendar.current.isDateInToday(ipo.closingDate)
+        }.count
+        return count > 0 ? count : closingSoonCount
+    }
+    
     public var closingSoonCount: Int {
         ipos.filter { ipo in
             guard ipo.status == .open else { return false }

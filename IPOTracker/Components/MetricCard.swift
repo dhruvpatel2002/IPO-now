@@ -99,7 +99,7 @@ public struct BlockMetricCard: View {
     public let title: String
     public let value: String
     public var subtitle: String? = nil
-    public var iconName: String
+    public var iconName: String? = nil
     public var blockColor: Color
     public var visualType: MetricVisualType = .bars
     public var isLive: Bool = false
@@ -108,7 +108,7 @@ public struct BlockMetricCard: View {
         title: String,
         value: String,
         subtitle: String? = nil,
-        iconName: String,
+        iconName: String? = nil,
         blockColor: Color = .brandPrimary,
         visualType: MetricVisualType = .bars,
         isLive: Bool = false
@@ -123,15 +123,11 @@ public struct BlockMetricCard: View {
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // Header: Icon + Title + Optional Live Badge
-            HStack(spacing: 7) {
-                Image(systemName: iconName)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.white)
-                
+        VStack(alignment: .leading, spacing: 0) {
+            // Header: Title + Optional Live Badge (No icon in front of text)
+            HStack(alignment: .top) {
                 Text(title)
-                    .font(.system(size: 13, weight: .bold))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white.opacity(0.95))
                     .lineLimit(1)
                 
@@ -170,67 +166,71 @@ public struct BlockMetricCard: View {
                         .lineLimit(1)
                 }
             }
+            .padding(.top, 4)
             
-            // Bottom Mini Visual (Dribbble widget style)
+            Spacer(minLength: 6)
+            
+            // Bottom Graphic Visualizer (Aligned on LEFT corner)
             HStack {
-                Spacer()
                 switch visualType {
                 case .bars:
-                    // Wave / soundwave bars
-                    HStack(alignment: .bottom, spacing: 3) {
-                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.35)).frame(width: 3, height: 8)
-                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.5)).frame(width: 3, height: 14)
-                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.9)).frame(width: 3, height: 22)
-                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.75)).frame(width: 3, height: 16)
-                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.45)).frame(width: 3, height: 10)
-                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.3)).frame(width: 3, height: 6)
+                    // Wave / soundwave bars on left
+                    HStack(alignment: .bottom, spacing: 3.5) {
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.4)).frame(width: 3.5, height: 8)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.6)).frame(width: 3.5, height: 15)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white).frame(width: 3.5, height: 22)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.8)).frame(width: 3.5, height: 16)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.5)).frame(width: 3.5, height: 10)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.35)).frame(width: 3.5, height: 6)
                     }
                     .frame(height: 22)
                 case .ring:
-                    // Circular progress ring
+                    // Circular progress ring on left
                     ZStack {
                         Circle()
                             .stroke(Color.white.opacity(0.25), lineWidth: 3.5)
-                            .frame(width: 24, height: 24)
+                            .frame(width: 22, height: 22)
                         Circle()
                             .trim(from: 0, to: 0.75)
                             .stroke(Color.white, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
-                            .frame(width: 24, height: 24)
+                            .frame(width: 22, height: 22)
                             .rotationEffect(.degrees(-90))
                     }
                 case .dots:
-                    // Dot matrix grid (like Health Journal)
-                    HStack(spacing: 3) {
-                        VStack(spacing: 3) {
-                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
-                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                    // Dot matrix grid on left
+                    HStack(spacing: 3.5) {
+                        VStack(spacing: 3.5) {
+                            Circle().fill(Color.white.opacity(0.4)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.4)).frame(width: 4, height: 4)
                             Circle().fill(Color.white).frame(width: 4, height: 4)
                         }
-                        VStack(spacing: 3) {
-                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                        VStack(spacing: 3.5) {
+                            Circle().fill(Color.white.opacity(0.4)).frame(width: 4, height: 4)
                             Circle().fill(Color.white).frame(width: 4, height: 4)
-                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.4)).frame(width: 4, height: 4)
                         }
-                        VStack(spacing: 3) {
+                        VStack(spacing: 3.5) {
                             Circle().fill(Color.white).frame(width: 4, height: 4)
-                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
-                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.4)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.4)).frame(width: 4, height: 4)
                         }
                     }
                 case .meter:
-                    // Mini segmented meter
-                    HStack(spacing: 2) {
+                    // Mini segmented meter on left
+                    HStack(spacing: 3) {
                         ForEach(0..<5) { index in
                             RoundedRectangle(cornerRadius: 2)
-                                .fill(index < 3 ? Color.white : Color.white.opacity(0.3))
+                                .fill(index < 3 ? Color.white : Color.white.opacity(0.35))
                                 .frame(width: 6, height: 10)
                         }
                     }
                 }
+                
+                Spacer()
             }
         }
         .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 145, maxHeight: 145, alignment: .topLeading)
         .background(blockColor)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .shadow(color: blockColor.opacity(0.35), radius: 10, x: 0, y: 5)
