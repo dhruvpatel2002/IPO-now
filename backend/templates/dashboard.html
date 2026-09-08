@@ -50,7 +50,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(10, 13, 20, 0.8);
+            background: rgba(10, 13, 20, 0.85);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
             border-bottom: 1px solid var(--border);
@@ -58,6 +58,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .brand {
@@ -95,45 +97,55 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        /* Scraper Trigger Button */
-        .btn-scrape {
-            display: flex;
+        .btn {
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            color: white;
-            border: none;
-            padding: 10px 20px;
+            padding: 9px 16px;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 14px var(--accent-glow);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .btn-scrape:hover {
+        .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
             filter: brightness(1.1);
         }
 
-        .btn-scrape:active {
-            transform: translateY(0);
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 14px var(--accent-glow);
         }
 
-        .btn-scrape:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
+        .btn-excel {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 14px var(--accent-green-glow);
+        }
+
+        .btn-ai-import {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.25);
         }
 
         .spinner {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
@@ -147,19 +159,19 @@
 
         /* Container Layout */
         .container {
-            max-width: 1400px;
-            margin: 32px auto;
+            max-width: 1440px;
+            margin: 28px auto;
             padding: 0 24px;
             display: flex;
             flex-direction: column;
-            gap: 28px;
+            gap: 24px;
         }
 
         /* Status & Bento Grid */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
+            gap: 18px;
         }
 
         .metric-card {
@@ -172,8 +184,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            position: relative;
-            overflow: hidden;
             transition: border-color 0.2s, transform 0.2s;
         }
 
@@ -426,24 +436,6 @@
             font-size: 13px;
         }
 
-        .btn-ai {
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.4);
-            color: #818cf8;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-ai:hover {
-            background: var(--accent-primary);
-            color: white;
-            box-shadow: 0 2px 10px var(--accent-glow);
-        }
-
         /* Modal */
         .modal-overlay {
             position: fixed;
@@ -451,7 +443,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(8px);
             display: none;
             align-items: center;
@@ -464,13 +456,13 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border-highlight);
             border-radius: 20px;
-            max-width: 550px;
+            max-width: 650px;
             width: 100%;
             padding: 28px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 18px;
             animation: modalIn 0.2s ease-out;
         }
 
@@ -498,21 +490,22 @@
             cursor: pointer;
         }
 
-        .modal-body {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.6;
+        .ai-textarea {
+            width: 100%;
+            min-height: 220px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            color: #e2e8f0;
+            padding: 14px;
+            border-radius: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            outline: none;
+            resize: vertical;
         }
 
-        .ai-pill {
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: var(--text-primary);
+        .ai-textarea:focus {
+            border-color: var(--accent-primary);
         }
 
         /* Toast */
@@ -540,17 +533,31 @@
             <div class="brand-icon">IPO</div>
             <div>
                 <div class="brand-title">IPOnow Command Center</div>
-                <div class="brand-subtitle">Automated Live Scraper & AI Extraction Hub</div>
+                <div class="brand-subtitle">Automated IPOWatch Scraper, Excel Database & AI Hub</div>
             </div>
         </div>
         <div class="header-actions">
             <div class="badge-live">
                 <div class="pulse-dot"></div>
-                <span id="cache-badge">Cache Ready</span>
+                <span id="cache-badge">Excel Database Synced</span>
             </div>
-            <button class="btn-scrape" id="scrape-btn" onclick="triggerManualScrape()">
+
+            <a href="/api/excel/download" class="btn btn-excel" title="Download entire dataset as Excel spreadsheet">
+                <span>📥 Download Excel</span>
+            </a>
+
+            <button class="btn btn-ai-import" onclick="openImportAIModal()">
+                <span>🤖 Paste AI Output</span>
+            </button>
+
+            <button class="btn" onclick="document.getElementById('excel-upload-input').click()">
+                <span>📤 Upload Excel</span>
+            </button>
+            <input type="file" id="excel-upload-input" accept=".xlsx" style="display: none;" onchange="handleExcelUpload(this)">
+
+            <button class="btn btn-primary" id="scrape-btn" onclick="triggerManualScrape()">
                 <span class="spinner" id="scrape-spinner"></span>
-                <span id="scrape-btn-text">⚡ Run Live Scraper Now</span>
+                <span id="scrape-btn-text">⚡ Run IPOWatch Scraper</span>
             </button>
         </div>
     </header>
@@ -560,11 +567,11 @@
         <div class="metrics-grid">
             <div class="metric-card">
                 <div class="metric-label">
-                    <span>Total IPOs Monitored</span>
+                    <span>Total IPOs in Database</span>
                     <span>📊</span>
                 </div>
                 <div class="metric-value" id="metric-total">--</div>
-                <div class="metric-footer" id="metric-types">Mainboard & SME tracked</div>
+                <div class="metric-footer" id="metric-source">Source: IPOWatch (ipowatch.in)</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">
@@ -584,7 +591,7 @@
             </div>
             <div class="metric-card">
                 <div class="metric-label">
-                    <span>Cache Freshness</span>
+                    <span>Database Status</span>
                     <span>⏱️</span>
                 </div>
                 <div class="metric-value" id="metric-age" style="font-size: 22px;">--</div>
@@ -614,20 +621,21 @@
                     <thead>
                         <tr>
                             <th>Company & Symbol</th>
+                            <th>Category</th>
                             <th>Status</th>
-                            <th>Issue Price</th>
+                            <th>Price Band</th>
+                            <th>Lot Size</th>
                             <th>GMP (Est. Gain)</th>
                             <th>Listed Price</th>
                             <th>Current Price (CMP)</th>
                             <th>Dates (Open - Close)</th>
                             <th>Total Sub</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="ipo-table-body">
                         <tr>
-                            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px;">
-                                Loading live IPO data...
+                            <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                                Loading Excel & live database...
                             </td>
                         </tr>
                     </tbody>
@@ -636,15 +644,20 @@
         </div>
     </div>
 
-    <!-- AI Analysis Modal -->
-    <div class="modal-overlay" id="ai-modal" onclick="closeModal(event)">
+    <!-- Paste AI Import Modal -->
+    <div class="modal-overlay" id="ai-import-modal" onclick="closeImportModal(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
-                <div class="modal-title" id="modal-company">AI Analysis</div>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div class="modal-title">🤖 Import AI Query Output into Excel</div>
+                <button class="modal-close" onclick="closeImportModal()">&times;</button>
             </div>
-            <div class="modal-body" id="modal-body">
-                Loading insights...
+            <div style="font-size: 13px; color: var(--text-secondary);">
+                Paste the JSON output from your ChatGPT / Gemini query below. It will automatically write to <code style="color: #818cf8;">ipos_database.xlsx</code> and refresh the app.
+            </div>
+            <textarea id="ai-json-input" class="ai-textarea" placeholder='[&#10;  {&#10;    "symbol": "GLASSWALL",&#10;    "companyName": "Glass Wall Systems (India) Ltd.",&#10;    "ipoTypeRaw": "Mainboard",&#10;    "priceHigh": 182.0,&#10;    "gmp": 50.0,&#10;    "openingDate": "2026-09-08T00:00:00Z",&#10;    "closingDate": "2026-09-10T18:29:59Z",&#10;    "statusRaw": "Open Now"&#10;  }&#10;]'></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn" onclick="closeImportModal()">Cancel</button>
+                <button class="btn btn-ai-import" onclick="submitAIImport()">💾 Save to Excel & Update App</button>
             </div>
         </div>
     </div>
@@ -662,11 +675,7 @@
                 const data = await res.json();
                 
                 const badge = document.getElementById('cache-badge');
-                if (data.is_fresh) {
-                    badge.innerText = `Cache Fresh (${data.cache_age_minutes}m ago)`;
-                } else {
-                    badge.innerText = `Cache Available (${data.cache_age_hours}h ago)`;
-                }
+                badge.innerText = `Excel Synced (${data.cache_age_minutes}m ago)`;
                 
                 document.getElementById('metric-age').innerText = `${data.cache_age_hours}h ago`;
                 document.getElementById('metric-schedule').innerText = data.refresh_schedule || "Twice daily at 09:30 & 18:30 IST";
@@ -704,7 +713,7 @@
         function renderTable(ipos) {
             const tbody = document.getElementById('ipo-table-body');
             if (!ipos.length) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px;">No IPOs found matching current filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 40px;">No IPOs found matching current filter.</td></tr>`;
                 return;
             }
 
@@ -742,12 +751,14 @@
                                 <div class="company-badge">${(ipo.symbol || 'IPO').slice(0, 3)}</div>
                                 <div>
                                     <div class="company-name">${ipo.companyName}</div>
-                                    <div class="company-type">${ipo.symbol} • ${ipo.ipoTypeRaw || 'Mainboard'}</div>
+                                    <div class="company-type">${ipo.symbol} • ${ipo.exchange || 'NSE / BSE'}</div>
                                 </div>
                             </div>
                         </td>
+                        <td><span style="font-size: 12px; font-weight: 600; color: ${ipo.ipoTypeRaw === 'SME' ? '#38bdf8' : '#818cf8'};">${ipo.ipoTypeRaw || 'Mainboard'}</span></td>
                         <td><span class="status-pill ${statusClass}">${ipo.statusRaw || 'Closed'}</span></td>
                         <td class="mono">₹${ipo.priceHigh ? ipo.priceHigh : 'TBA'}</td>
+                        <td class="mono">${ipo.lotSize ? ipo.lotSize + ' shares' : '-'}</td>
                         <td>${gmpPill}</td>
                         <td class="mono">
                             ${listedPriceStr}
@@ -761,9 +772,6 @@
                             ${formatDateRange(ipo.openingDate, ipo.closingDate)}
                         </td>
                         <td class="mono">${ipo.totalSubscription ? ipo.totalSubscription + 'x' : '-'}</td>
-                        <td>
-                            <button class="btn-ai" onclick="openAIAnalysis('${ipo.id}')">✨ AI Insights</button>
-                        </td>
                     </tr>
                 `;
             }).join('');
@@ -808,72 +816,84 @@
 
             btn.disabled = true;
             spinner.style.display = 'inline-block';
-            btnText.innerText = 'Scraping & Tuning AI Data...';
-            showToast('Triggering live crawler + AI extraction. Please wait ~15s...');
+            btnText.innerText = 'Scraping IPOWatch & Updating Excel...';
+            showToast('Triggering live IPOWatch scraper. Please wait ~5s...');
 
             try {
                 const res = await fetch('/api/refresh', { method: 'POST' });
                 const data = await res.json();
-                showToast(`Success! Scraped ${data.count} fresh IPOs.`);
+                showToast(`Success! Scraped ${data.count} fresh IPOs and synced Excel.`);
                 await loadIpos();
                 await fetchStatus();
             } catch (e) {
                 console.error(e);
-                showToast('Scrape completed or cached data reloaded.');
+                showToast('Scraper finished. Reloading database...');
                 await loadIpos();
             } finally {
                 btn.disabled = false;
                 spinner.style.display = 'none';
-                btnText.innerText = '⚡ Run Live Scraper Now';
+                btnText.innerText = '⚡ Run IPOWatch Scraper';
             }
         }
 
-        async function openAIAnalysis(ipoId) {
-            const modal = document.getElementById('ai-modal');
-            const modalCompany = document.getElementById('modal-company');
-            const modalBody = document.getElementById('modal-body');
+        function openImportAIModal() {
+            document.getElementById('ai-import-modal').style.display = 'flex';
+        }
 
-            modal.style.display = 'flex';
-            modalCompany.innerText = `AI Analysis: ${ipoId}`;
-            modalBody.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">Fetching fine-tuned AI sentiment...</div>`;
+        function closeImportModal(e) {
+            document.getElementById('ai-import-modal').style.display = 'none';
+        }
+
+        async function submitAIImport() {
+            const val = document.getElementById('ai-json-input').value;
+            if (!val.trim()) {
+                alert('Please paste AI JSON output');
+                return;
+            }
 
             try {
-                const res = await fetch(`/api/ai/analyze/${ipoId}`);
+                const res = await fetch('/api/excel/import-ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rawText: val })
+                });
                 const data = await res.json();
-                const ai = data.aiAnalysis || {};
-                const ipo = data.ipo || {};
-
-                modalCompany.innerText = `✨ AI Insights: ${ipo.companyName || ipoId}`;
-                modalBody.innerHTML = `
-                    <div class="ai-pill">
-                        <div style="font-weight: 700; color: #818cf8; margin-bottom: 4px;">Market Sentiment</div>
-                        <div style="font-size: 16px; font-weight: 600;">${ai.sentiment || 'Muted / Steady'}</div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <div class="ai-pill">
-                            <div style="font-size: 12px; color: var(--text-muted);">Expected Listing Gain</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #10b981;">${ai.listingGainForecast || '0.0%'}</div>
-                        </div>
-                        <div class="ai-pill">
-                            <div style="font-size: 12px; color: var(--text-muted);">Demand Level</div>
-                            <div style="font-size: 18px; font-weight: 700; color: #38bdf8;">${ai.demandLevel || 'Moderate'}</div>
-                        </div>
-                    </div>
-                    <div class="ai-pill">
-                        <div style="font-size: 12px; color: var(--text-muted);">Recommendation Strategy</div>
-                        <div style="font-size: 14px; font-weight: 600; color: #f59e0b; margin-top: 4px;">${ai.aiRecommendation || 'Evaluate Fundamentals'}</div>
-                    </div>
-                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
-                        Powered by Free AI Multi-Provider (Gemini Flash / Groq Llama 3) • Cached to conserve tokens
-                    </div>
-                `;
+                if (res.ok) {
+                    showToast(`Imported ${data.count} IPOs into Excel successfully!`);
+                    closeImportModal();
+                    await loadIpos();
+                    await fetchStatus();
+                } else {
+                    alert('Error: ' + (data.detail || 'Failed to parse'));
+                }
             } catch (e) {
-                modalBody.innerHTML = `<div style="color: #ef4444;">Failed to load AI analysis.</div>`;
+                alert('Import error: ' + e);
             }
         }
 
-        function closeModal(e) {
-            document.getElementById('ai-modal').style.display = 'none';
+        async function handleExcelUpload(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            showToast('Uploading and parsing Excel file...');
+            try {
+                const res = await fetch('/api/excel/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(`Updated database with ${data.count} IPOs from Excel.`);
+                    await loadIpos();
+                    await fetchStatus();
+                } else {
+                    alert('Upload error: ' + (data.detail || 'Failed to process Excel'));
+                }
+            } catch (e) {
+                alert('Upload error: ' + e);
+            }
         }
 
         function showToast(msg) {

@@ -165,9 +165,17 @@ class IPOScraper:
             with open(self._meta_file, "w", encoding="utf-8") as f:
                 json.dump(meta, f, indent=2)
                 
-            print(f"[IPOScraper] Saved {len(ipos)} IPOs & metadata to disk cache.")
+            # Sync to Excel workbook
+            try:
+                from excel_manager import save_ipos_to_excel
+            except ImportError:
+                from backend.excel_manager import save_ipos_to_excel
+            save_ipos_to_excel(ipos)
+            
+            print(f"[IPOScraper] Saved {len(ipos)} IPOs, Excel & metadata to disk.")
         except Exception as e:
             print(f"[IPOScraper] Error saving disk cache: {e}")
+
 
     def fetch_all_ipos(self, force: bool = False) -> List[Dict[str, Any]]:
         now = time.time()

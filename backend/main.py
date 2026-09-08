@@ -1,18 +1,23 @@
 import os
-os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
-
-from fastapi import FastAPI, Query, HTTPException
-from fastapi.responses import HTMLResponse
+import time
+from fastapi import FastAPI, Query, HTTPException, UploadFile, File, Body
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
 import asyncio
 import datetime
+
 try:
     from scraper import scraper
 except ImportError:
     from backend.scraper import scraper
+
+try:
+    from excel_manager import save_ipos_to_excel, load_ipos_from_excel, import_ai_json_or_text_to_excel, EXCEL_PATH
+except ImportError:
+    from backend.excel_manager import save_ipos_to_excel, load_ipos_from_excel, import_ai_json_or_text_to_excel, EXCEL_PATH
 
 scheduler = BackgroundScheduler()
 
@@ -26,7 +31,7 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(scheduled_refresh, "cron", hour="4,13", minute="0", timezone="UTC") # 09:30 & 18:30 IST
     scheduler.start()
     
-    # Check if disk cache is already fresh (< 12 hours old) to save AI tokens and crawler bandwidth
+    # Check if disk cache or Excel is already fresh (< 12 hours old)
     cache_status = scraper.get_cache_status()
     if not cache_status.get("is_fresh", False):
         print("[Lifespan] Cache is missing or stale (>12h). Launching background scrape...")
@@ -40,7 +45,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="IPOnow Live Scraper API",
-    description="Automated Indian IPO live data, GMP, subscriptions, and financial metrics backend with twice-daily cache optimization.",
+    description="Automated Indian IPO live data, GMP, subscriptions, Excel spreadsheet sync, and financial metrics backend.",
     version="2.0.0",
     lifespan=lifespan
 )
@@ -68,6 +73,57 @@ async def serve_dashboard():
             with open(p, "r", encoding="utf-8") as f:
                 return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>Dashboard template missing</h1>", status_code=404)
+
+@app.get("/api/excel/download")
+async def download_excel():
+    # Ensure latest Excel file exists
+    all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, False)
+    excel_file = save_ipos_to_excel(all_ipos)
+    if os.path.exists(excel_file):
+        return FileResponse(
+            excel_file,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            filename="ipos_database.xlsx"
+        )
+    raise HTTPException(status_code=404, detail="Excel database not found")
+
+@app.post("/api/excel/import-ai")
+async def import_ai_data(payload: Dict[str, Any] = Body(...)):
+    raw_text = payload.get("rawText") or payload.get("jsonText") or json.dumps(payload)
+    try:
+        updated_ipos = import_ai_json_or_text_to_excel(raw_text)
+        scraper._cached_ipos = updated_ipos
+        scraper._last_fetched = time.time()
+        return {
+            "status": "success",
+            "message": f"Successfully imported {len(updated_ipos)} IPOs into Excel and updated cache.",
+            "count": len(updated_ipos)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to parse AI output: {str(e)}")
+
+@app.post("/api/excel/upload")
+async def upload_excel_file(file: UploadFile = File(...)):
+    temp_path = os.path.join(os.path.dirname(__file__), "data", "uploaded_ipos.xlsx")
+    os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+    with open(temp_path, "wb") as f:
+        f.write(await file.read())
+    
+    try:
+        ipos = load_ipos_from_excel(temp_path)
+        if not ipos:
+            raise ValueError("No valid IPO rows found in uploaded Excel.")
+        save_ipos_to_excel(ipos, EXCEL_PATH)
+        scraper._cached_ipos = ipos
+        scraper._last_fetched = time.time()
+        scraper._save_disk_cache(ipos)
+        return {
+            "status": "success",
+            "message": f"Successfully updated database with {len(ipos)} IPOs from Excel file.",
+            "count": len(ipos)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to process Excel file: {str(e)}")
 
 
 @app.get("/")
