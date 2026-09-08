@@ -42,37 +42,37 @@ public struct HomeView: View {
                         .padding(.horizontal)
                         
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                            GradientMetricCard(
+                            BlockMetricCard(
                                 title: "Active Issues",
                                 value: "\(viewModel.openCount)",
                                 subtitle: "Bidding open today",
                                 iconName: "flame.fill",
-                                gradientColors: [Color.green, Color.teal],
+                                blockColor: .brandPrimary,
                                 isLive: viewModel.openCount > 0
                             )
                             
-                            GradientMetricCard(
+                            BlockMetricCard(
                                 title: "Closing Soon",
                                 value: "\(viewModel.closingSoonCount)",
                                 subtitle: "Within 48 hours",
                                 iconName: "clock.badge.exclamationmark.fill",
-                                gradientColors: [Color.orange, Color.red]
+                                blockColor: .orange
                             )
                             
-                            GradientMetricCard(
+                            BlockMetricCard(
                                 title: "Allotment Out",
                                 value: "\(viewModel.allotmentTodayCount)",
                                 subtitle: "Check results now",
                                 iconName: "checkmark.seal.fill",
-                                gradientColors: [Color.blue, Color.cyan]
+                                blockColor: .brandPrimary
                             )
                             
-                            GradientMetricCard(
+                            BlockMetricCard(
                                 title: "Pipeline",
                                 value: "\(viewModel.upcomingCount)",
                                 subtitle: "Upcoming this month",
                                 iconName: "calendar.badge.clock",
-                                gradientColors: [Color.purple, Color.indigo]
+                                blockColor: Color(hex: "5856D6")
                             )
                         }
                         .padding(.horizontal)

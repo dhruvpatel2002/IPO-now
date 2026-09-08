@@ -1,18 +1,49 @@
 import SwiftUI
 
+// MARK: - Brand Color Definitions
+public extension Color {
+    /// Sapphire Blue Primary Brand Color (#0F52BA)
+    static let brandPrimary = Color(red: 15/255, green: 82/255, blue: 186/255)
+    
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
+// MARK: - Standard Metric Card
 public struct MetricCard: View {
     public let title: String
     public let value: String
     public var subtitle: String? = nil
     public var iconName: String? = nil
-    public var accentColor: Color = .blue
+    public var accentColor: Color = .brandPrimary
     
     public init(
         title: String,
         value: String,
         subtitle: String? = nil,
         iconName: String? = nil,
-        accentColor: Color = .blue
+        accentColor: Color = .brandPrimary
     ) {
         self.title = title
         self.value = value
@@ -55,12 +86,13 @@ public struct MetricCard: View {
     }
 }
 
-public struct GradientMetricCard: View {
+// MARK: - Block Metric Card (Solid Color System)
+public struct BlockMetricCard: View {
     public let title: String
     public let value: String
     public var subtitle: String? = nil
     public var iconName: String
-    public var gradientColors: [Color]
+    public var blockColor: Color
     public var isLive: Bool = false
     
     public init(
@@ -68,14 +100,14 @@ public struct GradientMetricCard: View {
         value: String,
         subtitle: String? = nil,
         iconName: String,
-        gradientColors: [Color],
+        blockColor: Color = .brandPrimary,
         isLive: Bool = false
     ) {
         self.title = title
         self.value = value
         self.subtitle = subtitle
         self.iconName = iconName
-        self.gradientColors = gradientColors
+        self.blockColor = blockColor
         self.isLive = isLive
     }
     
@@ -83,12 +115,12 @@ public struct GradientMetricCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 ZStack {
-                    Circle()
-                        .fill(gradientColors.first?.opacity(0.18) ?? Color.accentColor.opacity(0.18))
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(blockColor.opacity(0.12))
                         .frame(width: 32, height: 32)
                     Image(systemName: iconName)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(gradientColors.first ?? .accentColor)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(blockColor)
                 }
                 
                 Spacer()
@@ -127,34 +159,19 @@ public struct GradientMetricCard: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            LinearGradient(
-                colors: [
-                    gradientColors.first?.opacity(0.12) ?? Color(UIColor.secondarySystemBackground),
-                    Color(UIColor.secondarySystemBackground).opacity(0.9)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .cornerRadius(16)
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(14)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            gradientColors.first?.opacity(0.35) ?? Color.clear,
-                            Color.primary.opacity(0.04)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(blockColor.opacity(0.18), lineWidth: 1)
         )
     }
 }
 
+// Backward compatibility alias for views referencing GradientMetricCard
+public typealias GradientMetricCard = BlockMetricCard
+
+// MARK: - Primary Action Button
 public struct PrimaryButton: View {
     public let title: String
     public var iconName: String? = nil
@@ -190,7 +207,7 @@ public struct PrimaryButton: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(Color.accentColor)
+            .background(Color.brandPrimary)
             .foregroundColor(.white)
             .cornerRadius(14)
         }
