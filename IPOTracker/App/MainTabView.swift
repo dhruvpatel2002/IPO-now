@@ -7,33 +7,35 @@ public struct MainTabView: View {
     
     public var body: some View {
         TabView(selection: $selectedTab) {
-            IPOListView()
+            HomeView()
                 .tabItem {
-                    Label {
-                        Text("IPOs")
-                    } icon: {
-                        Image("IPOTabIcon")
-                    }
+                    Label("Dashboard", systemImage: "square.grid.2x2.fill")
                 }
                 .tag(0)
+            
+            IPOListView()
+                .tabItem {
+                    Label("IPOs", systemImage: "chart.line.uptrend.xyaxis")
+                }
+                .tag(1)
             
             AllotmentTabView()
                 .tabItem {
                     Label("Allotment", systemImage: "doc.text.magnifyingglass")
                 }
-                .tag(1)
+                .tag(2)
             
             SavedPANsView()
                 .tabItem {
                     Label("PANs", systemImage: "person.text.rectangle.fill")
                 }
-                .tag(2)
+                .tag(3)
             
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
-                .tag(3)
+                .tag(4)
         }
     }
 }
