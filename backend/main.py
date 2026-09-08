@@ -113,6 +113,30 @@ async def get_gmp_rankings() -> List[Dict[str, Any]]:
     gmp_items.sort(key=lambda x: x["gmp"], reverse=True)
     return gmp_items
 
+@app.get("/api/ai/analyze/{ipo_id}")
+async def analyze_ipo_ai(ipo_id: str) -> Dict[str, Any]:
+    from ai_extractor import ai_extractor
+    all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, False)
+    target_ipo = None
+    for item in all_ipos:
+        if item.get("id", "").lower() == ipo_id.lower() or item.get("symbol", "").lower() == ipo_id.lower():
+            target_ipo = item
+            break
+    if not target_ipo:
+        raise HTTPException(status_code=404, detail="IPO not found")
+
+    analysis = ai_extractor.analyze_ipo_sentiment(
+        company_name=target_ipo.get("companyName", ""),
+        industry=target_ipo.get("industry", ""),
+        gmp=target_ipo.get("gmp", 0.0),
+        subscription=target_ipo.get("totalSubscription", 0.0)
+    )
+    return {
+        "ipo": target_ipo,
+        "aiAnalysis": analysis,
+        "isAiPowered": ai_extractor.is_ai_available()
+    }
+
 @app.post("/api/refresh")
 async def refresh_data():
     updated = await asyncio.to_thread(scraper.fetch_all_ipos, True)

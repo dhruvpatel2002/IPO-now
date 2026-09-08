@@ -4,49 +4,88 @@ public struct IPOListView: View {
     @StateObject private var viewModel = IPOListViewModel()
     @State private var selectedIPOForAllotment: IPO?
     @State private var isSearchPresented: Bool = false
+    @FocusState private var isSearchFocused: Bool
     
     public init() {}
     
     public var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // On-demand Animated Search Bar (only appears when search icon is clicked)
-                if isSearchPresented {
-                    HStack(spacing: 10) {
-                        HStack(spacing: 8) {
+                // Header Area with Expanding Native iOS Glass Search Bar
+                HStack(spacing: 12) {
+                    if !isSearchPresented {
+                        Text("IPOs")
+                            .font(.title2.weight(.bold))
+                            .foregroundColor(.primary)
+                            .transition(.opacity.combined(with: .move(edge: .leading)))
+                        
+                        Spacer()
+                        
+                        Button {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                isSearchPresented = true
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                isSearchFocused = true
+                            }
+                        } label: {
                             Image(systemName: "magnifyingglass")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.primary)
+                                .frame(width: 38, height: 38)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                                )
+                                .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+                        }
+                        .transition(.scale.combined(with: .opacity))
+                    } else {
+                        // Expanded Native iOS Glass Search Bar
+                        HStack(spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 15, weight: .medium))
                                 .foregroundColor(.secondary)
+                            
                             TextField("Search company, symbol, or industry", text: $viewModel.searchText)
                                 .textFieldStyle(.plain)
                                 .font(.subheadline)
-                            if !viewModel.searchText.isEmpty {
-                                Button {
+                                .focused($isSearchFocused)
+                                .autocorrectionDisabled()
+                            
+                            Button {
+                                if !viewModel.searchText.isEmpty {
                                     viewModel.searchText = ""
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.secondary)
+                                } else {
+                                    isSearchFocused = false
+                                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                                        isSearchPresented = false
+                                    }
                                 }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.secondary)
                             }
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color(UIColor.secondarySystemBackground))
-                        .cornerRadius(10)
-                        
-                        Button("Cancel") {
-                            withAnimation(.spring(response: 0.3)) {
-                                isSearchPresented = false
-                                viewModel.searchText = ""
-                            }
-                        }
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                        .background(.ultraThinMaterial)
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.primary.opacity(0.12), lineWidth: 1)
+                        )
+                        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 3)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(Color(UIColor.systemBackground))
-                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+                .background(Color(UIColor.systemBackground))
                 
                 // Top Level: Primary Category Tabs (Ongoing, Upcoming, Closed)
                 HStack(spacing: 0) {
@@ -87,12 +126,12 @@ public struct IPOListView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.top, 10)
+                .padding(.top, 4)
                 .background(Color(UIColor.systemBackground))
                 
                 Divider()
                 
-                // Second Level: Sub-Segment Filters (All, Mainboard, SME) with generous whitespace
+                // Second Level: Sub-Segment Filters (All, Mainboard, SME)
                 HStack(spacing: 10) {
                     Spacer()
                     ForEach(IPOSegmentFilter.allCases) { segment in
@@ -158,20 +197,7 @@ public struct IPOListView: View {
                     .padding(.bottom, 24)
                 }
             }
-            .navigationTitle("IPOs")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        withAnimation(.spring(response: 0.3)) {
-                            isSearchPresented.toggle()
-                        }
-                    } label: {
-                        Image(systemName: isSearchPresented ? "xmark" : "magnifyingglass")
-                            .font(.subheadline.weight(.semibold))
-                    }
-                }
-            }
+            .navigationBarHidden(true)
             .sheet(item: $selectedIPOForAllotment) { ipo in
                 AllotmentCheckerSheet(ipo: ipo)
             }
