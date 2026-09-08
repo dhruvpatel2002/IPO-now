@@ -3,6 +3,16 @@ import SwiftData
 
 @main
 struct IPOTrackerApp: App {
+    @AppStorage("appAppearance") private var appAppearance = "System"
+    
+    private var colorScheme: ColorScheme? {
+        switch appAppearance {
+        case "Light": return .light
+        case "Dark": return .dark
+        default: return nil // Follows system setting
+        }
+    }
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             IPO.self,
@@ -21,6 +31,7 @@ struct IPOTrackerApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .preferredColorScheme(colorScheme)
         }
         .modelContainer(sharedModelContainer)
     }
