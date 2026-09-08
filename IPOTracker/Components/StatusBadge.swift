@@ -7,32 +7,45 @@ public struct StatusBadge: View {
         self.status = status
     }
     
+    private var displayTitle: String {
+        switch status {
+        case .open:
+            return "Open Now"
+        case .upcoming:
+            return "Upcoming"
+        case .closed:
+            return "Closed"
+        case .allotmentOut:
+            return "Allotment Out"
+        case .listed:
+            return "Listed"
+        }
+    }
+    
     private var badgeColor: Color {
         switch status {
         case .open:
-            return .green
+            return Color(hex: "22C55E")
         case .upcoming:
-            return .blue
+            return .brandPrimary
         case .closed:
             return .secondary
         case .allotmentOut:
-            return .orange
+            return Color(hex: "F27A24")
         case .listed:
-            return .purple
+            return Color(hex: "8B5CF6")
         }
     }
     
     public var body: some View {
-        Text(status.rawValue)
-            .font(.helvetica(11, weight: .bold))
-            .foregroundColor(badgeColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(badgeColor.opacity(0.12))
-            .cornerRadius(6)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(badgeColor.opacity(0.24), lineWidth: 1)
-            )
+        HStack(spacing: 5) {
+            Circle()
+                .fill(badgeColor)
+                .frame(width: 6, height: 6)
+            
+            Text(displayTitle)
+                .font(.helvetica(12, weight: .bold))
+                .foregroundColor(badgeColor)
+        }
     }
 }

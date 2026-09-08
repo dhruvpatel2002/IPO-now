@@ -250,7 +250,7 @@ public struct BlockMetricCard: View {
             }
         }
         .padding(16)
-        .frame(maxWidth: .infinity, minHeight: 145, maxHeight: 145, alignment: .topLeading)
+        .frame(maxWidth: .infinity, minHeight: 125, maxHeight: 125, alignment: .topLeading)
         .background(blockColor)
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .shadow(color: blockColor.opacity(0.35), radius: 10, x: 0, y: 5)

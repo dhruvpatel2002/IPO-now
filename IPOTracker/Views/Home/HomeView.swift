@@ -49,7 +49,6 @@ public struct HomeView: View {
                             BlockMetricCard(
                                 title: "Ongoing",
                                 value: "\(viewModel.openCount)",
-                                subtitle: "Bidding open today",
                                 blockColor: .brandPrimary,
                                 visualType: .bars,
                                 isLive: viewModel.openCount > 0
@@ -58,7 +57,6 @@ public struct HomeView: View {
                             BlockMetricCard(
                                 title: "Closing Soon",
                                 value: "\(viewModel.closingTodayCount)",
-                                subtitle: "Closing today",
                                 blockColor: Color(hex: "F27A24"),
                                 visualType: .meter
                             )
@@ -66,7 +64,6 @@ public struct HomeView: View {
                             BlockMetricCard(
                                 title: "Allotment Out",
                                 value: "\(viewModel.allotmentTodayCount)",
-                                subtitle: "Check results now",
                                 blockColor: Color(hex: "8CA858"),
                                 visualType: .ring
                             )
@@ -74,7 +71,6 @@ public struct HomeView: View {
                             BlockMetricCard(
                                 title: "Upcoming",
                                 value: "\(viewModel.upcomingCount)",
-                                subtitle: "Upcoming pipeline",
                                 blockColor: Color(hex: "8B5CF6"),
                                 visualType: .dots
                             )

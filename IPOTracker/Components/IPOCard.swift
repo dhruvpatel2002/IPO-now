@@ -9,42 +9,51 @@ public struct IPOCard: View {
         self.onCheckAllotment = onCheckAllotment
     }
     
-    private var formattedTimeline: String {
-        if ipo.priceLow == 0 && ipo.priceHigh == 0 && ipo.status == .upcoming {
-            return "TBA"
-        }
+    private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "d MMM"
-        return "\(formatter.string(from: ipo.openingDate)) – \(formatter.string(from: ipo.closingDate))"
+        return formatter.string(from: date)
+    }
+    
+    private var timelineProgress: Double {
+        let now = Date().timeIntervalSince1970
+        let start = ipo.openingDate.timeIntervalSince1970
+        let end = ipo.closingDate.timeIntervalSince1970
+        if now < start {
+            return 0.15
+        } else if now > end {
+            return ipo.status == .listed ? 1.0 : 0.85
+        } else {
+            let total = max(end - start, 1)
+            let elapsed = max(now - start, 0)
+            let ratio = elapsed / total
+            return min(max(ratio * 0.7 + 0.15, 0.2), 0.85)
+        }
+    }
+    
+    private var progressColor: Color {
+        switch ipo.status {
+        case .open: return Color(hex: "22C55E")
+        case .upcoming: return .brandPrimary
+        case .allotmentOut: return Color(hex: "F27A24")
+        case .closed: return .secondary
+        case .listed: return Color(hex: "8B5CF6")
+        }
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // Header: Company Name, Type Tag, Exchange & Status Badge
+        VStack(alignment: .leading, spacing: 16) {
+            // 1. Header: Company Name + Type + Simple Colored Status (with pulse dot)
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text(ipo.companyName)
-                        .font(.helvetica(17, weight: .bold))
+                        .font(.helvetica(18, weight: .bold))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     
-                    HStack(spacing: 6) {
-                        Text(ipo.ipoType.rawValue)
-                            .font(.helvetica(10, weight: .bold))
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(Color.secondary.opacity(0.12))
-                            .cornerRadius(5)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 5)
-                                    .stroke(Color.secondary.opacity(0.18), lineWidth: 0.8)
-                            )
-                        
-                        Text(ipo.exchange)
-                            .font(.helvetica(11, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }
+                    Text("\(ipo.ipoType.rawValue) • \(ipo.exchange)")
+                        .font(.helvetica(12, weight: .medium))
+                        .foregroundColor(.secondary)
                 }
                 
                 Spacer()
@@ -52,153 +61,130 @@ public struct IPOCard: View {
                 StatusBadge(status: ipo.status)
             }
             
-            Divider()
-                .opacity(0.6)
-            
-            // Key Info Grid: Price Band, Lot Size, Issue Size, Timeline
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 3) {
+            // 2. Main Financial Metrics (Ample whitespace & clean hierarchy)
+            HStack(alignment: .top, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("PRICE BAND")
-                        .font(.helvetica(10, weight: .medium))
+                        .font(.helvetica(10, weight: .semibold))
                         .foregroundColor(.secondary)
                     Text(ipo.displayPriceBand)
-                        .font(.helvetica(14, weight: .bold))
+                        .font(.helvetica(15, weight: .bold))
+                        .foregroundColor(.primary)
                 }
                 
                 Spacer()
                 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("LOT SIZE")
-                        .font(.helvetica(10, weight: .medium))
+                        .font(.helvetica(10, weight: .semibold))
                         .foregroundColor(.secondary)
                     Text(ipo.displayLotSize)
-                        .font(.helvetica(14, weight: .bold))
+                        .font(.helvetica(15, weight: .bold))
+                        .foregroundColor(.primary)
                 }
                 
                 if ipo.issueSizeInCr > 0 {
                     Spacer()
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("ISSUE SIZE")
-                            .font(.helvetica(10, weight: .medium))
+                            .font(.helvetica(10, weight: .semibold))
                             .foregroundColor(.secondary)
                         Text(ipo.displayIssueSize)
-                            .font(.helvetica(14, weight: .bold))
+                            .font(.helvetica(15, weight: .bold))
+                            .foregroundColor(.primary)
                     }
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 3) {
-                    Text("TIMELINE")
-                        .font(.helvetica(10, weight: .medium))
-                        .foregroundColor(.secondary)
-                    Text(formattedTimeline)
-                        .font(.helvetica(13, weight: .bold))
                 }
             }
             
-            // Footer: GMP / Listed Return Badge + Subscription Multiplier + Action
+            // 3. Tags & Actions Row (Solid Green GMP badge, Subscription, CTA)
             HStack(spacing: 8) {
-                if let lp = ipo.listedPrice, lp > 0, let lg = ipo.listingGainPercentage {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrow.up.right.circle.fill")
-                            .font(.helvetica(11, weight: .regular))
-                            .foregroundColor(lg >= 0 ? .green : .red)
-                        Text("Listed: ₹\(Int(lp)) (\(String(format: "%@%.1f%%", lg >= 0 ? "+" : "", lg)))")
-                            .font(.helvetica(11, weight: .bold))
-                            .foregroundColor(lg >= 0 ? .green : .red)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background((lg >= 0 ? Color.green : Color.red).opacity(0.12))
-                    .cornerRadius(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke((lg >= 0 ? Color.green : Color.red).opacity(0.24), lineWidth: 1)
-                    )
-                } else if ipo.gmp > 0 {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chart.line.uptrend.xyaxis")
-                            .font(.helvetica(11, weight: .regular))
-                            .foregroundColor(.green)
-                        Text("GMP: +₹\(Int(ipo.gmp)) (\(String(format: "%.1f", ipo.gmpPercentage))%)")
-                            .font(.helvetica(11, weight: .bold))
-                            .foregroundColor(.green)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.green.opacity(0.12))
-                    .cornerRadius(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.green.opacity(0.24), lineWidth: 1)
-                    )
+                if ipo.gmp > 0 {
+                    Text("GMP +₹\(Int(ipo.gmp)) (\(String(format: "%.1f", ipo.gmpPercentage))%)")
+                        .font(.helvetica(11, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4.5)
+                        .background(Color(hex: "16A34A"))
+                        .cornerRadius(6)
+                } else if let lp = ipo.listedPrice, lp > 0, let lg = ipo.listingGainPercentage {
+                    Text("Listed ₹\(Int(lp)) (\(String(format: "%@%.1f%%", lg >= 0 ? "+" : "", lg)))")
+                        .font(.helvetica(11, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4.5)
+                        .background(lg >= 0 ? Color(hex: "16A34A") : Color.red)
+                        .cornerRadius(6)
                 } else {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chart.line.flattrend.xyaxis")
-                            .font(.helvetica(11, weight: .regular))
-                            .foregroundColor(.secondary)
-                        Text("GMP: 0%")
-                            .font(.helvetica(11, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.secondary.opacity(0.1))
-                    .cornerRadius(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.secondary.opacity(0.18), lineWidth: 0.8)
-                    )
+                    Text("GMP 0%")
+                        .font(.helvetica(11, weight: .medium))
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4.5)
+                        .background(Color.primary.opacity(0.06))
+                        .cornerRadius(6)
                 }
                 
                 if ipo.totalSubscription > 0 {
-                    HStack(spacing: 3) {
-                        Text("🔥")
-                            .font(.helvetica(11, weight: .regular))
-                        Text("\(String(format: "%.1f", ipo.totalSubscription))x")
-                            .font(.helvetica(11, weight: .bold))
-                            .foregroundColor(.orange)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.orange.opacity(0.12))
-                    .cornerRadius(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.orange.opacity(0.24), lineWidth: 1)
-                    )
+                    Text("🔥 \(String(format: "%.1f", ipo.totalSubscription))x")
+                        .font(.helvetica(11, weight: .bold))
+                        .foregroundColor(Color(hex: "F27A24"))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4.5)
+                        .background(Color(hex: "F27A24").opacity(0.12))
+                        .cornerRadius(6)
                 }
                 
                 Spacer()
                 
                 if (ipo.status == .allotmentOut || ipo.status == .closed), let onCheckAllotment {
                     Button(action: onCheckAllotment) {
-                        HStack(spacing: 4) {
-                            Text("Check Allotment")
-                            Image(systemName: "arrow.right.circle.fill")
+                        HStack(spacing: 3) {
+                            Text("Allotment")
+                            Image(systemName: "chevron.right")
+                                .font(.helvetica(9, weight: .bold))
                         }
                         .font(.helvetica(11, weight: .bold))
                         .foregroundColor(.brandPrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4.5)
                         .background(Color.brandPrimary.opacity(0.12))
                         .cornerRadius(6)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.brandPrimary.opacity(0.24), lineWidth: 1)
-                        )
                     }
                 }
             }
+            
+            // 4. Timeline Progress Bar UI Element along lower bottom
+            VStack(spacing: 5) {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.primary.opacity(0.06))
+                            .frame(height: 4)
+                        
+                        Capsule()
+                            .fill(progressColor)
+                            .frame(width: max(geo.size.width * timelineProgress, 12), height: 4)
+                    }
+                }
+                .frame(height: 4)
+                
+                HStack {
+                    Text("Opens \(formatDate(ipo.openingDate))")
+                        .font(.helvetica(10, weight: .medium))
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("Closes \(formatDate(ipo.closingDate))")
+                        .font(.helvetica(10, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.top, 2)
         }
-        .padding(16)
-        .background(Color(UIColor.secondarySystemBackground))
+        .padding(18)
+        .background(Color(UIColor.secondarySystemGroupedBackground))
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-        )
         .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 3)
     }
 }
