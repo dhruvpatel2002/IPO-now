@@ -55,6 +55,106 @@ public struct MetricCard: View {
     }
 }
 
+public struct GradientMetricCard: View {
+    public let title: String
+    public let value: String
+    public var subtitle: String? = nil
+    public var iconName: String
+    public var gradientColors: [Color]
+    public var isLive: Bool = false
+    
+    public init(
+        title: String,
+        value: String,
+        subtitle: String? = nil,
+        iconName: String,
+        gradientColors: [Color],
+        isLive: Bool = false
+    ) {
+        self.title = title
+        self.value = value
+        self.subtitle = subtitle
+        self.iconName = iconName
+        self.gradientColors = gradientColors
+        self.isLive = isLive
+    }
+    
+    public var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                ZStack {
+                    Circle()
+                        .fill(gradientColors.first?.opacity(0.18) ?? Color.accentColor.opacity(0.18))
+                        .frame(width: 32, height: 32)
+                    Image(systemName: iconName)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(gradientColors.first ?? .accentColor)
+                }
+                
+                Spacer()
+                
+                if isLive {
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(Color.green)
+                            .frame(width: 6, height: 6)
+                        Text("LIVE")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.green)
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.green.opacity(0.12))
+                    .cornerRadius(6)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(value)
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                
+                Text(title)
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(.secondary)
+            }
+            
+            if let subtitle {
+                Text(subtitle)
+                    .font(.caption2)
+                    .foregroundColor(.secondary.opacity(0.8))
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(
+                colors: [
+                    gradientColors.first?.opacity(0.12) ?? Color(UIColor.secondarySystemBackground),
+                    Color(UIColor.secondarySystemBackground).opacity(0.9)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            gradientColors.first?.opacity(0.35) ?? Color.clear,
+                            Color.primary.opacity(0.04)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+    }
+}
+
 public struct PrimaryButton: View {
     public let title: String
     public var iconName: String? = nil
