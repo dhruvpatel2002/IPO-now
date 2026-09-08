@@ -20,20 +20,20 @@ public struct IPOCard: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            // Header: Name, Type, Status Badge
+            // Header: Company Name, Type Tag, Exchange & Status Badge
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(ipo.companyName)
-                        .font(.headline)
+                        .font(.helvetica(17, weight: .bold))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     
                     HStack(spacing: 6) {
                         Text(ipo.ipoType.rawValue)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.helvetica(10, weight: .bold))
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 6)
-                            .padding(.vertical, 2.5)
+                            .padding(.vertical, 3)
                             .background(Color.secondary.opacity(0.12))
                             .cornerRadius(5)
                             .overlay(
@@ -42,7 +42,7 @@ public struct IPOCard: View {
                             )
                         
                         Text(ipo.exchange)
-                            .font(.caption2)
+                            .font(.helvetica(11, weight: .medium))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -53,35 +53,36 @@ public struct IPOCard: View {
             }
             
             Divider()
+                .opacity(0.6)
             
-            // Key Info Grid: Price, Lot Size, Issue Size, Dates
+            // Key Info Grid: Price Band, Lot Size, Issue Size, Timeline
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("PRICE BAND")
-                        .font(.caption2.weight(.medium))
+                        .font(.helvetica(10, weight: .medium))
                         .foregroundColor(.secondary)
                     Text(ipo.displayPriceBand)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.helvetica(14, weight: .bold))
                 }
                 
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("LOT SIZE")
-                        .font(.caption2.weight(.medium))
+                        .font(.helvetica(10, weight: .medium))
                         .foregroundColor(.secondary)
                     Text(ipo.displayLotSize)
-                        .font(.subheadline.weight(.semibold))
+                        .font(.helvetica(14, weight: .bold))
                 }
                 
                 if ipo.issueSizeInCr > 0 {
                     Spacer()
                     VStack(alignment: .leading, spacing: 3) {
                         Text("ISSUE SIZE")
-                            .font(.caption2.weight(.medium))
+                            .font(.helvetica(10, weight: .medium))
                             .foregroundColor(.secondary)
                         Text(ipo.displayIssueSize)
-                            .font(.subheadline.weight(.semibold))
+                            .font(.helvetica(14, weight: .bold))
                     }
                 }
                 
@@ -89,22 +90,22 @@ public struct IPOCard: View {
                 
                 VStack(alignment: .trailing, spacing: 3) {
                     Text("TIMELINE")
-                        .font(.caption2.weight(.medium))
+                        .font(.helvetica(10, weight: .medium))
                         .foregroundColor(.secondary)
                     Text(formattedTimeline)
-                        .font(.subheadline.weight(.medium))
+                        .font(.helvetica(13, weight: .bold))
                 }
             }
             
-            // Footer: GMP / Listed Comparison & Subscription + Optional Allotment CTA
+            // Footer: GMP / Listed Return Badge + Subscription Multiplier + Action
             HStack(spacing: 8) {
                 if let lp = ipo.listedPrice, lp > 0, let lg = ipo.listingGainPercentage {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.up.right.circle.fill")
-                            .font(.caption2)
+                            .font(.helvetica(11, weight: .regular))
                             .foregroundColor(lg >= 0 ? .green : .red)
                         Text("Listed: ₹\(Int(lp)) (\(String(format: "%@%.1f%%", lg >= 0 ? "+" : "", lg)))")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.helvetica(11, weight: .bold))
                             .foregroundColor(lg >= 0 ? .green : .red)
                     }
                     .padding(.horizontal, 8)
@@ -118,10 +119,10 @@ public struct IPOCard: View {
                 } else if ipo.gmp > 0 {
                     HStack(spacing: 4) {
                         Image(systemName: "chart.line.uptrend.xyaxis")
-                            .font(.caption2)
+                            .font(.helvetica(11, weight: .regular))
                             .foregroundColor(.green)
                         Text("GMP: +₹\(Int(ipo.gmp)) (\(String(format: "%.1f", ipo.gmpPercentage))%)")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.helvetica(11, weight: .bold))
                             .foregroundColor(.green)
                     }
                     .padding(.horizontal, 8)
@@ -135,10 +136,10 @@ public struct IPOCard: View {
                 } else {
                     HStack(spacing: 4) {
                         Image(systemName: "chart.line.flattrend.xyaxis")
-                            .font(.caption2)
+                            .font(.helvetica(11, weight: .regular))
                             .foregroundColor(.secondary)
                         Text("GMP: 0%")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.helvetica(11, weight: .medium))
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal, 8)
@@ -154,9 +155,9 @@ public struct IPOCard: View {
                 if ipo.totalSubscription > 0 {
                     HStack(spacing: 3) {
                         Text("🔥")
-                            .font(.caption2)
+                            .font(.helvetica(11, weight: .regular))
                         Text("\(String(format: "%.1f", ipo.totalSubscription))x")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.helvetica(11, weight: .bold))
                             .foregroundColor(.orange)
                     }
                     .padding(.horizontal, 8)
@@ -177,7 +178,7 @@ public struct IPOCard: View {
                             Text("Check Allotment")
                             Image(systemName: "arrow.right.circle.fill")
                         }
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.helvetica(11, weight: .bold))
                         .foregroundColor(.brandPrimary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -193,10 +194,11 @@ public struct IPOCard: View {
         }
         .padding(16)
         .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(16)
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(Color.primary.opacity(0.06), lineWidth: 1)
         )
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 3)
     }
 }

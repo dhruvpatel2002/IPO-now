@@ -30,6 +30,26 @@ public extension Color {
     }
 }
 
+// MARK: - Typography (Helvetica Unified Font System)
+public extension Font {
+    static func helvetica(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        switch weight {
+        case .heavy, .black:
+            return .custom("Helvetica-Bold", size: size)
+        case .bold:
+            return .custom("Helvetica-Bold", size: size)
+        case .semibold:
+            return .custom("HelveticaNeue-Medium", size: size)
+        case .medium:
+            return .custom("HelveticaNeue-Medium", size: size)
+        case .light, .ultraLight, .thin:
+            return .custom("Helvetica-Light", size: size)
+        default:
+            return .custom("Helvetica", size: size)
+        }
+    }
+}
+
 // MARK: - Standard Metric Card
 public struct MetricCard: View {
     public let title: String
@@ -56,23 +76,23 @@ public struct MetricCard: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(title)
-                    .font(.caption)
+                    .font(.helvetica(12, weight: .regular))
                     .foregroundColor(.secondary)
                 Spacer()
                 if let iconName {
                     Image(systemName: iconName)
-                        .font(.caption)
+                        .font(.helvetica(12, weight: .regular))
                         .foregroundColor(accentColor)
                 }
             }
             
             Text(value)
-                .font(.headline.weight(.bold))
+                .font(.helvetica(17, weight: .bold))
                 .foregroundColor(.primary)
             
             if let subtitle {
                 Text(subtitle)
-                    .font(.caption2)
+                    .font(.helvetica(11, weight: .regular))
                     .foregroundColor(.secondary)
             }
         }
@@ -127,7 +147,7 @@ public struct BlockMetricCard: View {
             // Header: Title + Optional Live Badge (No icon in front of text)
             HStack(alignment: .top) {
                 Text(title)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.helvetica(14, weight: .bold))
                     .foregroundColor(.white.opacity(0.95))
                     .lineLimit(1)
                 
@@ -139,7 +159,7 @@ public struct BlockMetricCard: View {
                             .fill(Color.white)
                             .frame(width: 5, height: 5)
                         Text("LIVE")
-                            .font(.system(size: 9, weight: .heavy))
+                            .font(.helvetica(9, weight: .heavy))
                             .foregroundColor(.white)
                     }
                     .padding(.horizontal, 6)
@@ -156,12 +176,12 @@ public struct BlockMetricCard: View {
             // Value & Subtitle
             VStack(alignment: .leading, spacing: 2) {
                 Text(value)
-                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .font(.helvetica(32, weight: .heavy))
                     .foregroundColor(.white)
                 
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.helvetica(11, weight: .medium))
                         .foregroundColor(.white.opacity(0.85))
                         .lineLimit(1)
                 }

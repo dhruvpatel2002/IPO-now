@@ -16,9 +16,9 @@ public struct HomeView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Market Dashboard")
-                                    .font(.title2.weight(.bold))
+                                    .font(.helvetica(22, weight: .bold))
                                 Text("Real-time Indian primary market overview")
-                                    .font(.caption)
+                                    .font(.helvetica(12, weight: .regular))
                                     .foregroundColor(.secondary)
                             }
                             
@@ -30,7 +30,7 @@ public struct HomeView: View {
                                         .fill(Color.brandPrimary)
                                         .frame(width: 6, height: 6)
                                     Text("\(viewModel.openCount) LIVE")
-                                        .font(.system(size: 10, weight: .heavy))
+                                        .font(.helvetica(10, weight: .heavy))
                                         .foregroundColor(.brandPrimary)
                                 }
                                 .padding(.horizontal, 8)
@@ -87,14 +87,14 @@ public struct HomeView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Recent Live Actions")
-                                    .font(.title3.weight(.bold))
+                                    .font(.helvetica(18, weight: .bold))
                                 Text("Latest subscriptions & market bids")
-                                    .font(.caption)
+                                    .font(.helvetica(12, weight: .regular))
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
                             Text("\(viewModel.ipos.count) Total")
-                                .font(.caption.weight(.semibold))
+                                .font(.helvetica(12, weight: .bold))
                                 .foregroundColor(.secondary)
                         }
                         .padding(.horizontal)
@@ -103,7 +103,7 @@ public struct HomeView: View {
                             VStack(spacing: 12) {
                                 ProgressView()
                                 Text("Loading live market actions...")
-                                    .font(.subheadline)
+                                    .font(.helvetica(14, weight: .medium))
                                     .foregroundColor(.secondary)
                             }
                             .frame(maxWidth: .infinity)

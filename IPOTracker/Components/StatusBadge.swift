@@ -24,7 +24,7 @@ public struct StatusBadge: View {
     
     public var body: some View {
         Text(status.rawValue)
-            .font(.system(size: 11, weight: .bold))
+            .font(.helvetica(11, weight: .bold))
             .foregroundColor(badgeColor)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)

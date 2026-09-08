@@ -11,10 +11,10 @@ public struct SubscriptionCard: View {
         VStack(spacing: 12) {
             HStack {
                 Text("Total Subscription")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.helvetica(14, weight: .semibold))
                 Spacer()
                 Text("\(String(format: "%.2f", ipo.totalSubscription))x")
-                    .font(.headline.weight(.bold))
+                    .font(.helvetica(17, weight: .bold))
                     .foregroundColor(ipo.totalSubscription >= 1.0 ? .green : .orange)
             }
             
@@ -29,7 +29,7 @@ public struct SubscriptionCard: View {
         }
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(16)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 }
 
@@ -40,10 +40,10 @@ private struct SubscriptionItem: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(category)
-                .font(.caption2)
+                .font(.helvetica(11, weight: .regular))
                 .foregroundColor(.secondary)
             Text("\(String(format: "%.2f", multiple))x")
-                .font(.subheadline.weight(.semibold))
+                .font(.helvetica(14, weight: .bold))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
