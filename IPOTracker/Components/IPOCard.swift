@@ -9,50 +9,56 @@ public struct IPOCard: View {
         self.onCheckAllotment = onCheckAllotment
     }
     
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d MMM"
-        return formatter.string(from: date)
+    private var companyInitials: String {
+        let clean = ipo.companyName
+            .replacingOccurrences(of: "Limited", with: "")
+            .replacingOccurrences(of: "Ltd", with: "")
+            .replacingOccurrences(of: "India", with: "")
+            .trimmingCharacters(in: .whitespaces)
+        let words = clean.components(separatedBy: " ").filter { !$0.isEmpty }
+        if words.count >= 2, let first = words[0].first, let second = words[1].first {
+            return "\(first)\(second)".uppercased()
+        } else if let first = clean.first {
+            return String(first).uppercased()
+        }
+        return "IP"
     }
     
-    private var timelineProgress: Double {
-        let now = Date().timeIntervalSince1970
-        let start = ipo.openingDate.timeIntervalSince1970
-        let end = ipo.closingDate.timeIntervalSince1970
-        if now < start {
-            return 0.15
-        } else if now > end {
-            return ipo.status == .listed ? 1.0 : 0.85
-        } else {
-            let total = max(end - start, 1)
-            let elapsed = max(now - start, 0)
-            let ratio = elapsed / total
-            return min(max(ratio * 0.7 + 0.15, 0.2), 0.85)
-        }
-    }
-    
-    private var progressColor: Color {
-        switch ipo.status {
-        case .open: return Color(hex: "22C55E")
-        case .upcoming: return .brandPrimary
-        case .allotmentOut: return Color(hex: "F27A24")
-        case .closed: return .secondary
-        case .listed: return Color(hex: "8B5CF6")
-        }
+    private var companyAvatarColor: Color {
+        let colors: [Color] = [
+            Color(hex: "00A6ED"),
+            Color(hex: "8B5CF6"),
+            Color(hex: "10B981"),
+            Color(hex: "F27A24"),
+            Color(hex: "EC4899"),
+            Color(hex: "6366F1")
+        ]
+        let hash = abs(ipo.companyName.hashValue)
+        return colors[hash % colors.count]
     }
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 1. Header: Company Name + Type + Simple Colored Status (with pulse dot)
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 4) {
+            // 1. Header: Company Logo Avatar + Name + Subtitle (Mainboard/SME) + Status Badge
+            HStack(alignment: .center, spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(companyAvatarColor.opacity(0.14))
+                        .frame(width: 44, height: 44)
+                    
+                    Text(companyInitials)
+                        .font(.helvetica(15, weight: .bold))
+                        .foregroundColor(companyAvatarColor)
+                }
+                
+                VStack(alignment: .leading, spacing: 3) {
                     Text(ipo.companyName)
-                        .font(.helvetica(18, weight: .bold))
+                        .font(.helvetica(17, weight: .bold))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     
-                    Text("\(ipo.ipoType.rawValue) • \(ipo.exchange)")
-                        .font(.helvetica(12, weight: .medium))
+                    Text(ipo.ipoType.rawValue)
+                        .font(.helvetica(12, weight: .semibold))
                         .foregroundColor(.secondary)
                 }
                 
@@ -61,126 +67,80 @@ public struct IPOCard: View {
                 StatusBadge(status: ipo.status)
             }
             
-            // 2. Main Financial Metrics (Ample whitespace & clean hierarchy)
-            HStack(alignment: .top, spacing: 16) {
+            // 2. Three Horizontal Stats: Issue Price, Subscription, and GMP Card
+            HStack(alignment: .center, spacing: 10) {
+                // Stat 1: Issue Price
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("PRICE BAND")
+                    Text("ISSUE PRICE")
                         .font(.helvetica(10, weight: .semibold))
                         .foregroundColor(.secondary)
                     Text(ipo.displayPriceBand)
                         .font(.helvetica(15, weight: .bold))
                         .foregroundColor(.primary)
+                        .lineLimit(1)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
-                Spacer()
-                
+                // Stat 2: Subscription
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("LOT SIZE")
+                    Text("SUBSCRIPTION")
                         .font(.helvetica(10, weight: .semibold))
                         .foregroundColor(.secondary)
-                    Text(ipo.displayLotSize)
-                        .font(.helvetica(15, weight: .bold))
-                        .foregroundColor(.primary)
-                }
-                
-                if ipo.issueSizeInCr > 0 {
-                    Spacer()
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("ISSUE SIZE")
-                            .font(.helvetica(10, weight: .semibold))
-                            .foregroundColor(.secondary)
-                        Text(ipo.displayIssueSize)
+                    
+                    if ipo.totalSubscription > 0 {
+                        Text("\(String(format: "%.2f", ipo.totalSubscription))x")
                             .font(.helvetica(15, weight: .bold))
-                            .foregroundColor(.primary)
+                            .foregroundColor(ipo.totalSubscription >= 1.0 ? Color(hex: "22C55E") : .primary)
+                    } else {
+                        Text("—")
+                            .font(.helvetica(15, weight: .bold))
+                            .foregroundColor(.secondary)
                     }
                 }
-            }
-            
-            // 3. Tags & Actions Row (Solid Green GMP badge, Subscription, CTA)
-            HStack(spacing: 8) {
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Stat 3: GMP Mini Card (Solid Green Tag with Big Amount & Smaller Percent)
                 if ipo.gmp > 0 {
-                    Text("GMP +₹\(Int(ipo.gmp)) (\(String(format: "%.1f", ipo.gmpPercentage))%)")
-                        .font(.helvetica(11, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4.5)
-                        .background(Color(hex: "16A34A"))
-                        .cornerRadius(6)
+                    VStack(spacing: 1) {
+                        Text("+₹\(Int(ipo.gmp))")
+                            .font(.helvetica(15, weight: .heavy))
+                            .foregroundColor(.white)
+                        Text("\(String(format: "%.1f", ipo.gmpPercentage))%")
+                            .font(.helvetica(10, weight: .bold))
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Color(hex: "16A34A"))
+                    .cornerRadius(10)
                 } else if let lp = ipo.listedPrice, lp > 0, let lg = ipo.listingGainPercentage {
-                    Text("Listed ₹\(Int(lp)) (\(String(format: "%@%.1f%%", lg >= 0 ? "+" : "", lg)))")
-                        .font(.helvetica(11, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4.5)
-                        .background(lg >= 0 ? Color(hex: "16A34A") : Color.red)
-                        .cornerRadius(6)
+                    VStack(spacing: 1) {
+                        Text("₹\(Int(lp))")
+                            .font(.helvetica(15, weight: .heavy))
+                            .foregroundColor(.white)
+                        Text("\(String(format: "%@%.1f%%", lg >= 0 ? "+" : "", lg))")
+                            .font(.helvetica(10, weight: .bold))
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(lg >= 0 ? Color(hex: "16A34A") : Color.red)
+                    .cornerRadius(10)
                 } else {
-                    Text("GMP 0%")
-                        .font(.helvetica(11, weight: .medium))
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4.5)
-                        .background(Color.primary.opacity(0.06))
-                        .cornerRadius(6)
-                }
-                
-                if ipo.totalSubscription > 0 {
-                    Text("🔥 \(String(format: "%.1f", ipo.totalSubscription))x")
-                        .font(.helvetica(11, weight: .bold))
-                        .foregroundColor(Color(hex: "F27A24"))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4.5)
-                        .background(Color(hex: "F27A24").opacity(0.12))
-                        .cornerRadius(6)
-                }
-                
-                Spacer()
-                
-                if (ipo.status == .allotmentOut || ipo.status == .closed), let onCheckAllotment {
-                    Button(action: onCheckAllotment) {
-                        HStack(spacing: 3) {
-                            Text("Allotment")
-                            Image(systemName: "chevron.right")
-                                .font(.helvetica(9, weight: .bold))
-                        }
-                        .font(.helvetica(11, weight: .bold))
-                        .foregroundColor(.brandPrimary)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 4.5)
-                        .background(Color.brandPrimary.opacity(0.12))
-                        .cornerRadius(6)
+                    VStack(spacing: 1) {
+                        Text("₹0")
+                            .font(.helvetica(14, weight: .bold))
+                            .foregroundColor(.secondary)
+                        Text("0.0%")
+                            .font(.helvetica(10, weight: .medium))
+                            .foregroundColor(.secondary.opacity(0.8))
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 7)
+                    .background(Color.primary.opacity(0.06))
+                    .cornerRadius(10)
                 }
             }
-            
-            // 4. Timeline Progress Bar UI Element along lower bottom
-            VStack(spacing: 5) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.primary.opacity(0.06))
-                            .frame(height: 4)
-                        
-                        Capsule()
-                            .fill(progressColor)
-                            .frame(width: max(geo.size.width * timelineProgress, 12), height: 4)
-                    }
-                }
-                .frame(height: 4)
-                
-                HStack {
-                    Text("Opens \(formatDate(ipo.openingDate))")
-                        .font(.helvetica(10, weight: .medium))
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    Text("Closes \(formatDate(ipo.closingDate))")
-                        .font(.helvetica(10, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
-            }
-            .padding(.top, 2)
         }
         .padding(18)
         .background(Color(UIColor.secondarySystemGroupedBackground))

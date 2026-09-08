@@ -1,12 +1,14 @@
 import SwiftUI
 
 public struct IPOListView: View {
-    @StateObject private var viewModel = IPOListViewModel()
+    @StateObject private var viewModel: IPOListViewModel
     @State private var selectedIPOForAllotment: IPO?
     @State private var isSearchPresented: Bool = false
     @FocusState private var isSearchFocused: Bool
     
-    public init() {}
+    public init(initialCategory: IPOCategory = .ongoing) {
+        _viewModel = StateObject(wrappedValue: IPOListViewModel(initialCategory: initialCategory))
+    }
     
     public var body: some View {
         NavigationStack {

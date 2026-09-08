@@ -2,6 +2,7 @@ import SwiftUI
 
 public struct StatusBadge: View {
     public let status: IPOStatus
+    @State private var isPulsing = false
     
     public init(status: IPOStatus) {
         self.status = status
@@ -10,7 +11,7 @@ public struct StatusBadge: View {
     private var displayTitle: String {
         switch status {
         case .open:
-            return "Open Now"
+            return "Open"
         case .upcoming:
             return "Upcoming"
         case .closed:
@@ -39,9 +40,32 @@ public struct StatusBadge: View {
     
     public var body: some View {
         HStack(spacing: 5) {
-            Circle()
-                .fill(badgeColor)
-                .frame(width: 6, height: 6)
+            if status == .open {
+                ZStack {
+                    Circle()
+                        .fill(badgeColor.opacity(0.45))
+                        .frame(width: 12, height: 12)
+                        .scaleEffect(isPulsing ? 1.5 : 0.7)
+                        .opacity(isPulsing ? 0 : 0.9)
+                    
+                    Circle()
+                        .fill(badgeColor)
+                        .frame(width: 6, height: 6)
+                }
+                .frame(width: 12, height: 12)
+                .onAppear {
+                    withAnimation(
+                        .easeInOut(duration: 1.2)
+                        .repeatForever(autoreverses: false)
+                    ) {
+                        isPulsing = true
+                    }
+                }
+            } else {
+                Circle()
+                    .fill(badgeColor)
+                    .frame(width: 6, height: 6)
+            }
             
             Text(displayTitle)
                 .font(.helvetica(12, weight: .bold))

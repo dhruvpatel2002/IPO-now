@@ -14,13 +14,8 @@ public struct HomeView: View {
                     // 1. Market Dashboard (Bento Snapshot Cards)
                     VStack(alignment: .leading, spacing: 14) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Market Dashboard")
-                                    .font(.helvetica(22, weight: .bold))
-                                Text("Real-time Indian primary market overview")
-                                    .font(.helvetica(12, weight: .regular))
-                                    .foregroundColor(.secondary)
-                            }
+                            Text("Market Dashboard")
+                                .font(.helvetica(22, weight: .bold))
                             
                             Spacer()
                             
@@ -46,34 +41,46 @@ public struct HomeView: View {
                         .padding(.horizontal)
                         
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                            BlockMetricCard(
-                                title: "Ongoing",
-                                value: "\(viewModel.openCount)",
-                                blockColor: .brandPrimary,
-                                visualType: .bars,
-                                isLive: viewModel.openCount > 0
-                            )
+                            NavigationLink(destination: IPOListView(initialCategory: .ongoing)) {
+                                BlockMetricCard(
+                                    title: "Ongoing",
+                                    value: "\(viewModel.openCount)",
+                                    blockColor: .brandPrimary,
+                                    visualType: .bars,
+                                    isLive: viewModel.openCount > 0
+                                )
+                            }
+                            .buttonStyle(.plain)
                             
-                            BlockMetricCard(
-                                title: "Closing Soon",
-                                value: "\(viewModel.closingTodayCount)",
-                                blockColor: Color(hex: "F27A24"),
-                                visualType: .meter
-                            )
+                            NavigationLink(destination: IPOListView(initialCategory: .ongoing)) {
+                                BlockMetricCard(
+                                    title: "Closing Soon",
+                                    value: "\(viewModel.closingTodayCount)",
+                                    blockColor: Color(hex: "F27A24"),
+                                    visualType: .meter
+                                )
+                            }
+                            .buttonStyle(.plain)
                             
-                            BlockMetricCard(
-                                title: "Allotment Out",
-                                value: "\(viewModel.allotmentTodayCount)",
-                                blockColor: Color(hex: "8CA858"),
-                                visualType: .ring
-                            )
+                            NavigationLink(destination: AllotmentTabView()) {
+                                BlockMetricCard(
+                                    title: "Allotment Out",
+                                    value: "\(viewModel.allotmentTodayCount)",
+                                    blockColor: Color(hex: "8CA858"),
+                                    visualType: .ring
+                                )
+                            }
+                            .buttonStyle(.plain)
                             
-                            BlockMetricCard(
-                                title: "Upcoming",
-                                value: "\(viewModel.upcomingCount)",
-                                blockColor: Color(hex: "8B5CF6"),
-                                visualType: .dots
-                            )
+                            NavigationLink(destination: IPOListView(initialCategory: .upcoming)) {
+                                BlockMetricCard(
+                                    title: "Upcoming",
+                                    value: "\(viewModel.upcomingCount)",
+                                    blockColor: Color(hex: "8B5CF6"),
+                                    visualType: .dots
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal)
                     }
@@ -81,14 +88,11 @@ public struct HomeView: View {
                     // 2. Recent Live Actions
                     VStack(alignment: .leading, spacing: 14) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Recent Live Actions")
-                                    .font(.helvetica(18, weight: .bold))
-                                Text("Latest subscriptions & market bids")
-                                    .font(.helvetica(12, weight: .regular))
-                                    .foregroundColor(.secondary)
-                            }
+                            Text("Recent Live Actions")
+                                .font(.helvetica(18, weight: .bold))
+                            
                             Spacer()
+                            
                             Text("\(viewModel.ipos.count) Total")
                                 .font(.helvetica(12, weight: .bold))
                                 .foregroundColor(.secondary)
@@ -119,6 +123,7 @@ public struct HomeView: View {
                 }
                 .padding(.vertical, 12)
             }
+            .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $selectedIPOForAllotment) { ipo in

@@ -36,8 +36,9 @@ public final class IPOListViewModel: ObservableObject {
     
     private let ipoService: IPOService
     
-    public init(ipoService: IPOService = UpvalyIPOService.shared) {
+    public init(ipoService: IPOService = UpvalyIPOService.shared, initialCategory: IPOCategory = .ongoing) {
         self.ipoService = ipoService
+        self.selectedCategory = initialCategory
     }
     
     public func countForCategory(_ category: IPOCategory) -> Int {
