@@ -630,16 +630,30 @@
                             <th>Current Price (CMP)</th>
                             <th>Dates (Open - Close)</th>
                             <th>Total Sub</th>
+                            <th>AI Insights</th>
                         </tr>
                     </thead>
                     <tbody id="ipo-table-body">
                         <tr>
-                            <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                            <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 40px;">
                                 Loading Excel & live database...
                             </td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Insights Modal -->
+    <div class="modal-overlay" id="ai-modal" onclick="closeAIModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="ai-modal-company">✨ AI Equity Research & Sentiment</div>
+                <button class="modal-close" onclick="closeAIModal()">&times;</button>
+            </div>
+            <div id="ai-modal-content" style="display: flex; flex-direction: column; gap: 14px; font-size: 14px;">
+                <div style="text-align: center; padding: 20px; color: var(--text-muted);">Analyzing ground truth data with Free AI...</div>
             </div>
         </div>
     </div>
@@ -661,6 +675,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
@@ -772,10 +787,16 @@
                             ${formatDateRange(ipo.openingDate, ipo.closingDate)}
                         </td>
                         <td class="mono">${ipo.totalSubscription ? ipo.totalSubscription + 'x' : '-'}</td>
+                        <td>
+                            <button class="btn" style="padding: 4px 10px; font-size: 11px; background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: #818cf8;" onclick="openAIAnalysis('${ipo.id}')">
+                                ✨ AI Insights
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
         }
+
 
         function setFilter(filter) {
             currentFilter = filter;
@@ -894,6 +915,68 @@
             } catch (e) {
                 alert('Upload error: ' + e);
             }
+        }
+
+        async function openAIAnalysis(ipoId) {
+            const modal = document.getElementById('ai-modal');
+            const compTitle = document.getElementById('ai-modal-company');
+            const content = document.getElementById('ai-modal-content');
+
+            modal.style.display = 'flex';
+            compTitle.innerText = `✨ AI Insights: ${ipoId}`;
+            content.innerHTML = `<div style="text-align: center; padding: 25px; color: var(--text-muted);">Generating deep AI financial research...</div>`;
+
+            try {
+                const res = await fetch(`/api/ai/analyze/${ipoId}`);
+                const data = await res.json();
+                const ai = data.aiAnalysis || {};
+                const ipo = data.ipo || {};
+
+                compTitle.innerText = `✨ AI Insights: ${ipo.companyName || ipoId}`;
+                content.innerHTML = `
+                    <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 14px;">
+                        <div style="font-size: 12px; color: #818cf8; font-weight: 700; text-transform: uppercase;">Market Sentiment Rating</div>
+                        <div style="font-size: 17px; font-weight: 700; color: #f1f5f9; margin-top: 4px;">${ai.sentiment || 'Bullish'}</div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                            <div style="font-size: 11px; color: var(--text-muted);">Listing Gain Forecast</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #10b981; margin-top: 2px;">${ai.listingGainForecast || '0.0%'}</div>
+                        </div>
+                        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                            <div style="font-size: 11px; color: var(--text-muted);">Demand Multiple</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #38bdf8; margin-top: 2px;">${ai.demandLevel || 'Moderate'}</div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px;">
+                        <div style="font-size: 12px; font-weight: 600; color: #f59e0b; margin-bottom: 4px;">💡 Strategy & Recommendation</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #f1f5f9;">${ai.aiRecommendation || 'Apply for Listing Gains'}</div>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; line-height: 1.5;">
+                        <div style="font-size: 12px; font-weight: 600; color: #34d399; margin-bottom: 2px;">💪 Key Business Strengths</div>
+                        <div style="color: var(--text-secondary); font-size: 13px;">${ai.strengthsAnalysis || 'Strong fundamental positioning and GMP momentum.'}</div>
+                    </div>
+
+                    <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; line-height: 1.5;">
+                        <div style="font-size: 12px; font-weight: 600; color: #f87171; margin-bottom: 2px;">⚠️ Risk Factors Assessment</div>
+                        <div style="color: var(--text-secondary); font-size: 13px;">${ai.riskAssessment || 'Subject to general listing day volatility and market sentiment.'}</div>
+                    </div>
+
+                    <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 12px; line-height: 1.5;">
+                        <div style="font-size: 12px; font-weight: 600; color: #818cf8; margin-bottom: 2px;">📋 Analyst Verdict</div>
+                        <div style="color: #f1f5f9; font-size: 13px;">${ai.verdict || 'Favorable listing potential backed by ground-truth subscription demand.'}</div>
+                    </div>
+                `;
+            } catch (e) {
+                content.innerHTML = `<div style="color: #ef4444; padding: 20px;">Failed to load AI analysis: ${e}</div>`;
+            }
+        }
+
+        function closeAIModal() {
+            document.getElementById('ai-modal').style.display = 'none';
         }
 
         function showToast(msg) {

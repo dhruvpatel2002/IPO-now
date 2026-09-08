@@ -30,5 +30,27 @@
     "demandLevel": "Developing",
     "aiRecommendation": "Evaluate Fundamentals",
     "cachedAt": "2026-09-08T05:47:38Z"
+  },
+  "GLASSWALL": {
+    "companyName": "Glass Wall Systems",
+    "sentiment": "Bullish (High Listing Gain Expected)",
+    "listingGainForecast": "+27.5%",
+    "demandLevel": "Moderate",
+    "aiRecommendation": "Apply for Listing Gains",
+    "strengthsAnalysis": "Market demand validated by +\u20b950.0 GMP and 4.5x subscription interest.",
+    "riskAssessment": "Subject to broader market listing volatility and post-allotment demand.",
+    "verdict": "Favorable listing profile with expected listing around \u20b9232.0.",
+    "cachedAt": "2026-09-08T06:51:54Z"
+  },
+  "GLASS WALL SYSTEMS": {
+    "companyName": "Glass Wall Systems",
+    "sentiment": "Steady Interest",
+    "listingGainForecast": "+19.2%",
+    "demandLevel": "Moderate",
+    "aiRecommendation": "Consider for Long Term",
+    "strengthsAnalysis": "Market demand validated by +\u20b935.0 GMP and 0.3x subscription interest.",
+    "riskAssessment": "Subject to broader market listing volatility and post-allotment demand.",
+    "verdict": "Favorable listing profile with expected listing around \u20b9217.0.",
+    "cachedAt": "2026-09-08T06:53:48Z"
   }
 }
