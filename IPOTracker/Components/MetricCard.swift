@@ -2,8 +2,8 @@ import SwiftUI
 
 // MARK: - Brand Color Definitions
 public extension Color {
-    /// Sapphire Blue Primary Brand Color (#0F52BA)
-    static let brandPrimary = Color(red: 15/255, green: 82/255, blue: 186/255)
+    /// Vibrant Sky Blue Primary Brand Color (#00A6ED)
+    static let brandPrimary = Color(red: 0/255, green: 166/255, blue: 237/255)
     
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
