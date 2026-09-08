@@ -27,16 +27,20 @@ public struct HomeView: View {
                             if viewModel.openCount > 0 {
                                 HStack(spacing: 5) {
                                     Circle()
-                                        .fill(Color.green)
-                                        .frame(width: 7, height: 7)
+                                        .fill(Color.brandPrimary)
+                                        .frame(width: 6, height: 6)
                                     Text("\(viewModel.openCount) LIVE")
-                                        .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.green)
+                                        .font(.system(size: 10, weight: .heavy))
+                                        .foregroundColor(.brandPrimary)
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.green.opacity(0.12))
-                                .cornerRadius(8)
+                                .background(Color.brandPrimary.opacity(0.12))
+                                .cornerRadius(6)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(Color.brandPrimary.opacity(0.24), lineWidth: 1)
+                                )
                             }
                         }
                         .padding(.horizontal)
@@ -48,6 +52,7 @@ public struct HomeView: View {
                                 subtitle: "Bidding open today",
                                 iconName: "flame.fill",
                                 blockColor: .brandPrimary,
+                                visualType: .bars,
                                 isLive: viewModel.openCount > 0
                             )
                             
@@ -56,7 +61,8 @@ public struct HomeView: View {
                                 value: "\(viewModel.closingSoonCount)",
                                 subtitle: "Within 48 hours",
                                 iconName: "clock.badge.exclamationmark.fill",
-                                blockColor: .orange
+                                blockColor: Color(hex: "F27A24"),
+                                visualType: .meter
                             )
                             
                             BlockMetricCard(
@@ -64,7 +70,8 @@ public struct HomeView: View {
                                 value: "\(viewModel.allotmentTodayCount)",
                                 subtitle: "Check results now",
                                 iconName: "checkmark.seal.fill",
-                                blockColor: .brandPrimary
+                                blockColor: Color(hex: "8CA858"),
+                                visualType: .ring
                             )
                             
                             BlockMetricCard(
@@ -72,7 +79,8 @@ public struct HomeView: View {
                                 value: "\(viewModel.upcomingCount)",
                                 subtitle: "Upcoming this month",
                                 iconName: "calendar.badge.clock",
-                                blockColor: Color(hex: "5856D6")
+                                blockColor: Color(hex: "8B5CF6"),
+                                visualType: .dots
                             )
                         }
                         .padding(.horizontal)

@@ -86,13 +86,22 @@ public struct MetricCard: View {
     }
 }
 
-// MARK: - Block Metric Card (Solid Color System)
+// MARK: - Block Metric Card Visual Style
+public enum MetricVisualType {
+    case bars      // Soundwave/subscription bars like Dribbble Mood card
+    case ring      // Mini circular progress ring like Dribbble Freud Score card
+    case dots      // Dot matrix grid like Dribbble Health Journal card
+    case meter     // Horizontal progress meter
+}
+
+// MARK: - Block Metric Card (Solid Vibrant Color System inspired by Dribbble Widget UI)
 public struct BlockMetricCard: View {
     public let title: String
     public let value: String
     public var subtitle: String? = nil
     public var iconName: String
     public var blockColor: Color
+    public var visualType: MetricVisualType = .bars
     public var isLive: Bool = false
     
     public init(
@@ -101,6 +110,7 @@ public struct BlockMetricCard: View {
         subtitle: String? = nil,
         iconName: String,
         blockColor: Color = .brandPrimary,
+        visualType: MetricVisualType = .bars,
         isLive: Bool = false
     ) {
         self.title = title
@@ -108,63 +118,122 @@ public struct BlockMetricCard: View {
         self.subtitle = subtitle
         self.iconName = iconName
         self.blockColor = blockColor
+        self.visualType = visualType
         self.isLive = isLive
     }
     
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(blockColor.opacity(0.12))
-                        .frame(width: 32, height: 32)
-                    Image(systemName: iconName)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(blockColor)
-                }
+        VStack(alignment: .leading, spacing: 14) {
+            // Header: Icon + Title + Optional Live Badge
+            HStack(spacing: 7) {
+                Image(systemName: iconName)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
                 
-                Spacer()
+                Text(title)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.white.opacity(0.95))
+                    .lineLimit(1)
+                
+                Spacer(minLength: 4)
                 
                 if isLive {
                     HStack(spacing: 4) {
                         Circle()
-                            .fill(Color.green)
-                            .frame(width: 6, height: 6)
+                            .fill(Color.white)
+                            .frame(width: 5, height: 5)
                         Text("LIVE")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(.green)
+                            .font(.system(size: 9, weight: .heavy))
+                            .foregroundColor(.white)
                     }
                     .padding(.horizontal, 6)
                     .padding(.vertical, 3)
-                    .background(Color.green.opacity(0.12))
+                    .background(Color.white.opacity(0.25))
                     .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.white.opacity(0.4), lineWidth: 0.8)
+                    )
                 }
             }
             
+            // Value & Subtitle
             VStack(alignment: .leading, spacing: 2) {
                 Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
+                    .font(.system(size: 32, weight: .heavy, design: .rounded))
+                    .foregroundColor(.white)
                 
-                Text(title)
-                    .font(.caption.weight(.medium))
-                    .foregroundColor(.secondary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                        .lineLimit(1)
+                }
             }
             
-            if let subtitle {
-                Text(subtitle)
-                    .font(.caption2)
-                    .foregroundColor(.secondary.opacity(0.8))
+            // Bottom Mini Visual (Dribbble widget style)
+            HStack {
+                Spacer()
+                switch visualType {
+                case .bars:
+                    // Wave / soundwave bars
+                    HStack(alignment: .bottom, spacing: 3) {
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.35)).frame(width: 3, height: 8)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.5)).frame(width: 3, height: 14)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.9)).frame(width: 3, height: 22)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.75)).frame(width: 3, height: 16)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.45)).frame(width: 3, height: 10)
+                        RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.3)).frame(width: 3, height: 6)
+                    }
+                    .frame(height: 22)
+                case .ring:
+                    // Circular progress ring
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white.opacity(0.25), lineWidth: 3.5)
+                            .frame(width: 24, height: 24)
+                        Circle()
+                            .trim(from: 0, to: 0.75)
+                            .stroke(Color.white, style: StrokeStyle(lineWidth: 3.5, lineCap: .round))
+                            .frame(width: 24, height: 24)
+                            .rotationEffect(.degrees(-90))
+                    }
+                case .dots:
+                    // Dot matrix grid (like Health Journal)
+                    HStack(spacing: 3) {
+                        VStack(spacing: 3) {
+                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white).frame(width: 4, height: 4)
+                        }
+                        VStack(spacing: 3) {
+                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                        }
+                        VStack(spacing: 3) {
+                            Circle().fill(Color.white).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                            Circle().fill(Color.white.opacity(0.35)).frame(width: 4, height: 4)
+                        }
+                    }
+                case .meter:
+                    // Mini segmented meter
+                    HStack(spacing: 2) {
+                        ForEach(0..<5) { index in
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(index < 3 ? Color.white : Color.white.opacity(0.3))
+                                .frame(width: 6, height: 10)
+                        }
+                    }
+                }
             }
         }
-        .padding(14)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(14)
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(blockColor.opacity(0.18), lineWidth: 1)
-        )
+        .background(blockColor)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .shadow(color: blockColor.opacity(0.35), radius: 10, x: 0, y: 5)
     }
 }
 

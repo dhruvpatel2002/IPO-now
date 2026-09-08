@@ -73,9 +73,9 @@ public struct IPOListView: View {
                         .padding(.horizontal, 14)
                         .padding(.vertical, 9)
                         .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
+                        .cornerRadius(10)
                         .overlay(
-                            Capsule()
+                            RoundedRectangle(cornerRadius: 10)
                                 .stroke(Color.primary.opacity(0.12), lineWidth: 1)
                         )
                         .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 3)
@@ -102,23 +102,27 @@ public struct IPOListView: View {
                                         .font(.subheadline.weight(isSelected ? .bold : .medium))
                                     
                                     Text("\(viewModel.countForCategory(category))")
-                                        .font(.caption2.weight(.bold))
+                                        .font(.system(size: 11, weight: .bold))
                                         .padding(.horizontal, 6)
                                         .padding(.vertical, 2)
                                         .background(
                                             isSelected ?
-                                            Color.accentColor.opacity(0.18) :
+                                            Color.brandPrimary.opacity(0.18) :
                                             Color.secondary.opacity(0.12)
                                         )
-                                        .foregroundColor(isSelected ? .accentColor : .secondary)
-                                        .clipShape(Capsule())
+                                        .foregroundColor(isSelected ? .brandPrimary : .secondary)
+                                        .cornerRadius(5)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .stroke((isSelected ? Color.brandPrimary : Color.secondary).opacity(0.2), lineWidth: 0.8)
+                                        )
                                 }
                                 .foregroundColor(isSelected ? .primary : .secondary)
                                 .frame(maxWidth: .infinity)
                                 
                                 // Sliding Underline Indicator
                                 Rectangle()
-                                    .fill(isSelected ? Color.accentColor : Color.clear)
+                                    .fill(isSelected ? Color.brandPrimary : Color.clear)
                                     .frame(height: 2.5)
                                     .cornerRadius(2)
                             }
@@ -142,16 +146,20 @@ public struct IPOListView: View {
                             }
                         } label: {
                             Text(segment.rawValue)
-                                .font(.caption.weight(isSelected ? .semibold : .medium))
-                                .padding(.horizontal, 14)
+                                .font(.caption.weight(isSelected ? .bold : .medium))
+                                .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
                                 .background(
                                     isSelected ?
-                                    Color.accentColor :
+                                    Color.brandPrimary :
                                     Color(UIColor.secondarySystemBackground)
                                 )
                                 .foregroundColor(isSelected ? .white : .primary)
-                                .clipShape(Capsule())
+                                .cornerRadius(6)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .stroke(isSelected ? Color.brandPrimary : Color.primary.opacity(0.08), lineWidth: 1)
+                                )
                         }
                         .buttonStyle(.plain)
                     }

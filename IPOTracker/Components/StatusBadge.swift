@@ -24,11 +24,15 @@ public struct StatusBadge: View {
     
     public var body: some View {
         Text(status.rawValue)
-            .font(.caption.weight(.semibold))
+            .font(.system(size: 11, weight: .bold))
             .foregroundColor(badgeColor)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(badgeColor.opacity(0.12))
-            .clipShape(Capsule())
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(badgeColor.opacity(0.24), lineWidth: 1)
+            )
     }
 }

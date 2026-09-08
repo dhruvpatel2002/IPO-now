@@ -30,11 +30,16 @@ public struct IPOCard: View {
                     
                     HStack(spacing: 6) {
                         Text(ipo.ipoType.rawValue)
-                            .font(.caption.weight(.medium))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.secondary)
                             .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
+                            .padding(.vertical, 2.5)
                             .background(Color.secondary.opacity(0.12))
-                            .cornerRadius(4)
+                            .cornerRadius(5)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(Color.secondary.opacity(0.18), lineWidth: 0.8)
+                            )
                         
                         Text(ipo.exchange)
                             .font(.caption2)
@@ -99,39 +104,51 @@ public struct IPOCard: View {
                             .font(.caption2)
                             .foregroundColor(lg >= 0 ? .green : .red)
                         Text("Listed: ₹\(Int(lp)) (\(String(format: "%@%.1f%%", lg >= 0 ? "+" : "", lg)))")
-                            .font(.caption.weight(.semibold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundColor(lg >= 0 ? .green : .red)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background((lg >= 0 ? Color.green : Color.red).opacity(0.1))
+                    .background((lg >= 0 ? Color.green : Color.red).opacity(0.12))
                     .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke((lg >= 0 ? Color.green : Color.red).opacity(0.24), lineWidth: 1)
+                    )
                 } else if ipo.gmp > 0 {
                     HStack(spacing: 4) {
                         Image(systemName: "chart.line.uptrend.xyaxis")
                             .font(.caption2)
                             .foregroundColor(.green)
                         Text("GMP: +₹\(Int(ipo.gmp)) (\(String(format: "%.1f", ipo.gmpPercentage))%)")
-                            .font(.caption.weight(.medium))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.green)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.green.opacity(0.1))
+                    .background(Color.green.opacity(0.12))
                     .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.green.opacity(0.24), lineWidth: 1)
+                    )
                 } else {
                     HStack(spacing: 4) {
                         Image(systemName: "chart.line.flattrend.xyaxis")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         Text("GMP: 0%")
-                            .font(.caption.weight(.medium))
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.secondary)
                     }
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.secondary.opacity(0.1))
                     .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.secondary.opacity(0.18), lineWidth: 0.8)
+                    )
                 }
                 
                 if ipo.totalSubscription > 0 {
@@ -139,13 +156,17 @@ public struct IPOCard: View {
                         Text("🔥")
                             .font(.caption2)
                         Text("\(String(format: "%.1f", ipo.totalSubscription))x")
-                            .font(.caption.weight(.semibold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.orange)
                     }
-                    .padding(.horizontal, 7)
+                    .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.orange.opacity(0.12))
                     .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.orange.opacity(0.24), lineWidth: 1)
+                    )
                 }
                 
                 Spacer()
@@ -156,8 +177,16 @@ public struct IPOCard: View {
                             Text("Check Allotment")
                             Image(systemName: "arrow.right.circle.fill")
                         }
-                        .font(.caption.weight(.semibold))
-                        .foregroundColor(.accentColor)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.brandPrimary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.brandPrimary.opacity(0.12))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.brandPrimary.opacity(0.24), lineWidth: 1)
+                        )
                     }
                 }
             }

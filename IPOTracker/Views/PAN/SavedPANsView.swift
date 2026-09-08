@@ -38,9 +38,9 @@ public struct SavedPANsView: View {
                                 .font(.subheadline.weight(.semibold))
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 16)
-                                .background(Color.accentColor)
+                                .background(Color.brandPrimary)
                                 .foregroundColor(.white)
-                                .clipShape(Capsule())
+                                .cornerRadius(8)
                             }
                             .padding(.top, 4)
                         }

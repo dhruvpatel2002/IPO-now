@@ -55,11 +55,15 @@ public struct AllotmentCheckerSheet: View {
                                                 .padding(.vertical, 6)
                                                 .background(
                                                     isSelected ?
-                                                    Color.accentColor :
+                                                    Color.brandPrimary :
                                                     Color(UIColor.secondarySystemBackground)
                                                 )
                                                 .foregroundColor(isSelected ? .white : .primary)
-                                                .clipShape(Capsule())
+                                                .cornerRadius(6)
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 6)
+                                                        .stroke(isSelected ? Color.brandPrimary : Color.primary.opacity(0.08), lineWidth: 1)
+                                                )
                                             }
                                         }
                                     }
