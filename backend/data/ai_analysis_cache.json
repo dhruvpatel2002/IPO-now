@@ -1,0 +1,34 @@
+{
+  "ECOS": {
+    "companyName": "Ecos Mobility",
+    "sentiment": "Steady Interest",
+    "listingGainForecast": "+15.0%",
+    "demandLevel": "High",
+    "aiRecommendation": "Evaluate Fundamentals",
+    "cachedAt": "2026-09-08T05:34:03Z"
+  },
+  "FASCINATETEXTI": {
+    "companyName": "Fascinate Textiles",
+    "sentiment": "Low / Muted Demand",
+    "listingGainForecast": "0.0%",
+    "demandLevel": "Moderate",
+    "aiRecommendation": "Evaluate Fundamentals",
+    "cachedAt": "2026-09-08T05:38:03Z"
+  },
+  "PRANAVCONSTRUC": {
+    "companyName": "Pranav Constructions",
+    "sentiment": "High Listing Gain Expected",
+    "listingGainForecast": "+34.3%",
+    "demandLevel": "Moderate",
+    "aiRecommendation": "Apply for Listing Gains",
+    "cachedAt": "2026-09-08T05:47:24Z"
+  },
+  "GLASSWALLSYSTE": {
+    "companyName": "Glass Wall Systems (India)",
+    "sentiment": "High Listing Gain Expected",
+    "listingGainForecast": "+28.0%",
+    "demandLevel": "Developing",
+    "aiRecommendation": "Evaluate Fundamentals",
+    "cachedAt": "2026-09-08T05:47:38Z"
+  }
+}

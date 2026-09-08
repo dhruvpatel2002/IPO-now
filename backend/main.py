@@ -2,13 +2,17 @@ import os
 os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "0"
 
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
 import asyncio
 import datetime
-from scraper import scraper
+try:
+    from scraper import scraper
+except ImportError:
+    from backend.scraper import scraper
 
 scheduler = BackgroundScheduler()
 
@@ -18,12 +22,17 @@ def scheduled_refresh():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Start scheduler for 9:30 AM & 6:30 PM daily
-    scheduler.add_job(scheduled_refresh, "cron", hour="9,18", minute="30")
+    # Start scheduler for 9:30 AM & 6:30 PM IST daily
+    scheduler.add_job(scheduled_refresh, "cron", hour="4,13", minute="0", timezone="UTC") # 09:30 & 18:30 IST
     scheduler.start()
     
-    # Run initial scrape in a separate background thread so it doesn't block boot or asyncio loop
-    asyncio.create_task(asyncio.to_thread(scraper.fetch_all_ipos, False))
+    # Check if disk cache is already fresh (< 12 hours old) to save AI tokens and crawler bandwidth
+    cache_status = scraper.get_cache_status()
+    if not cache_status.get("is_fresh", False):
+        print("[Lifespan] Cache is missing or stale (>12h). Launching background scrape...")
+        asyncio.create_task(asyncio.to_thread(scraper.fetch_all_ipos, False))
+    else:
+        print(f"[Lifespan] Cache is fresh ({cache_status.get('total_ipos')} IPOs, updated {cache_status.get('last_updated')}). Serving instantly without scraping.")
     
     yield
     
@@ -31,7 +40,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="IPOnow Live Scraper API",
-    description="Automated Indian IPO live data, GMP, subscriptions, and financial metrics backend.",
+    description="Automated Indian IPO live data, GMP, subscriptions, and financial metrics backend with twice-daily cache optimization.",
     version="2.0.0",
     lifespan=lifespan
 )
@@ -44,22 +53,47 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/dashboard", response_class=HTMLResponse)
+@app.get("/admin", response_class=HTMLResponse)
+async def serve_dashboard():
+    candidate_paths = [
+        os.path.join(os.path.dirname(__file__), "templates", "dashboard.html"),
+        os.path.join(os.getcwd(), "backend", "templates", "dashboard.html"),
+        os.path.join(os.getcwd(), "templates", "dashboard.html"),
+        "backend/templates/dashboard.html",
+        "templates/dashboard.html"
+    ]
+    for p in candidate_paths:
+        if os.path.exists(p):
+            with open(p, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Dashboard template missing</h1>", status_code=404)
+
+
 @app.get("/")
 async def health_check():
-    ipos = await asyncio.to_thread(scraper.fetch_all_ipos, False)
+    cache_meta = scraper.get_cache_status()
     return {
         "status": "healthy",
         "service": "IPOnow Scraper API",
         "version": "2.0.0",
-        "total_live_ipos": len(ipos),
-        "schedule": "2x daily (09:30 & 18:30 IST)",
+        "dashboardUrl": "/dashboard",
+        "cache": cache_meta,
+        "tokenOptimization": "Data cached persistently and refreshed twice daily (09:30 & 18:30 IST)",
         "endpoints": [
+            "/dashboard",
             "/api/ipos",
             "/api/ipos/{id}",
             "/api/gmp",
+            "/api/status",
+            "/api/ai/analyze/{id}",
             "/api/refresh"
         ]
     }
+
+@app.get("/api/status")
+async def get_cache_status():
+    return scraper.get_cache_status()
 
 @app.get("/api/ipos")
 async def get_ipos(
@@ -67,14 +101,15 @@ async def get_ipos(
     ipo_type: Optional[str] = Query(None, description="Type filter: mainboard, sme, sse"),
     force_refresh: bool = Query(False, description="Force fresh web scrape")
 ) -> List[Dict[str, Any]]:
-    all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, force_refresh)
+    force_val = bool(force_refresh is True)
+    all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, force_val)
     results = list(all_ipos)
 
-    if ipo_type:
+    if isinstance(ipo_type, str) and ipo_type:
         type_lower = ipo_type.lower()
         results = [i for i in results if type_lower in i.get("ipoTypeRaw", "").lower()]
 
-    if category:
+    if isinstance(category, str) and category:
         cat_lower = category.lower()
         if cat_lower in ["live", "ongoing", "open"]:
             results = [i for i in results if "open" in i.get("statusRaw", "").lower()]
@@ -115,7 +150,11 @@ async def get_gmp_rankings() -> List[Dict[str, Any]]:
 
 @app.get("/api/ai/analyze/{ipo_id}")
 async def analyze_ipo_ai(ipo_id: str) -> Dict[str, Any]:
-    from ai_extractor import ai_extractor
+    try:
+        from ai_extractor import free_ai
+    except ImportError:
+        from backend.ai_extractor import free_ai
+
     all_ipos = await asyncio.to_thread(scraper.fetch_all_ipos, False)
     target_ipo = None
     for item in all_ipos:
@@ -125,17 +164,21 @@ async def analyze_ipo_ai(ipo_id: str) -> Dict[str, Any]:
     if not target_ipo:
         raise HTTPException(status_code=404, detail="IPO not found")
 
-    analysis = ai_extractor.analyze_ipo_sentiment(
-        company_name=target_ipo.get("companyName", ""),
+    analysis = free_ai.analyze_ipo(
+        name=target_ipo.get("companyName", ""),
         industry=target_ipo.get("industry", ""),
         gmp=target_ipo.get("gmp", 0.0),
-        subscription=target_ipo.get("totalSubscription", 0.0)
+        sub=target_ipo.get("totalSubscription", 0.0),
+        price=target_ipo.get("priceHigh", 0.0),
+        listed_price=target_ipo.get("listedPrice"),
+        ipo_id=target_ipo.get("id")
     )
     return {
         "ipo": target_ipo,
         "aiAnalysis": analysis,
-        "isAiPowered": ai_extractor.is_ai_available()
+        "isAiPowered": free_ai.is_ai_available()
     }
+
 
 @app.post("/api/refresh")
 async def refresh_data():

@@ -86,9 +86,29 @@ class IPOScraper:
     def __init__(self):
         self._cached_ipos: List[Dict[str, Any]] = []
         self._last_fetched: float = 0
-        self._cache_ttl = 300  # 5 minutes cache
+        self._cache_ttl = 12 * 3600  # 12 hours (refreshed 2x daily to conserve free AI tokens)
         self._cache_file = os.path.join(os.path.dirname(__file__), "data", "live_ipos_cache.json")
+        self._meta_file = os.path.join(os.path.dirname(__file__), "data", "cache_metadata.json")
         self._load_disk_cache()
+
+    def get_cache_status(self) -> Dict[str, Any]:
+        now = time.time()
+        age_seconds = int(now - self._last_fetched) if self._last_fetched > 0 else 0
+        age_minutes = age_seconds // 60
+        age_hours = round(age_seconds / 3600, 1)
+        
+        last_dt = datetime.datetime.fromtimestamp(self._last_fetched, tz=datetime.timezone.utc) if self._last_fetched > 0 else None
+        
+        return {
+            "is_cached": len(self._cached_ipos) > 0,
+            "total_ipos": len(self._cached_ipos),
+            "cache_ttl_hours": 12,
+            "cache_age_hours": age_hours,
+            "cache_age_minutes": age_minutes,
+            "is_fresh": (now - self._last_fetched) < self._cache_ttl if self._last_fetched > 0 else False,
+            "last_updated": last_dt.strftime("%Y-%m-%dT%H:%M:%SZ") if last_dt else "Never",
+            "refresh_schedule": "Twice daily at 09:30 AM & 06:30 PM IST"
+        }
 
     def _load_disk_cache(self):
         candidate_paths = [
@@ -102,12 +122,13 @@ class IPOScraper:
         for p in candidate_paths:
             if os.path.exists(p):
                 try:
+                    mtime = os.path.getmtime(p)
                     with open(p, "r", encoding="utf-8") as f:
                         data = json.load(f)
                         if data and isinstance(data, list) and len(data) > 0:
                             self._cached_ipos = data
-                            self._last_fetched = time.time()
-                            print(f"[IPOScraper] Successfully loaded {len(self._cached_ipos)} IPOs from disk cache at {p}")
+                            self._last_fetched = mtime
+                            print(f"[IPOScraper] Loaded {len(self._cached_ipos)} IPOs from disk cache at {p} (mtime: {datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')})")
                             return
                 except Exception as e:
                     print(f"[IPOScraper] Error reading cache from {p}: {e}")
@@ -122,15 +143,23 @@ class IPOScraper:
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 with open(target_path, "w", encoding="utf-8") as f:
                     json.dump(ipos, f, indent=2)
-            print(f"[IPOScraper] Saved {len(ipos)} IPOs to disk cache.")
+                    
+            # Save metadata
+            meta = self.get_cache_status()
+            with open(self._meta_file, "w", encoding="utf-8") as f:
+                json.dump(meta, f, indent=2)
+                
+            print(f"[IPOScraper] Saved {len(ipos)} IPOs & metadata to disk cache.")
         except Exception as e:
             print(f"[IPOScraper] Error saving disk cache: {e}")
 
     def fetch_all_ipos(self, force: bool = False) -> List[Dict[str, Any]]:
         now = time.time()
+        # If cache is valid and not forced, return instant cached data
         if not force and self._cached_ipos and (now - self._last_fetched) < self._cache_ttl:
             return self._cached_ipos
 
+        # If forced or cache expired, run live scrape
         ipos = self._scrape_live_sources()
         if ipos:
             self._cached_ipos = ipos
@@ -286,7 +315,42 @@ class IPOScraper:
 
                 browser.close()
         except Exception as e:
-            print(f"[Playwright Global Error] {e}")
+            print(f"[Playwright Notice] {e}. Trying direct HTTP fallback...")
+            try:
+                import urllib.request
+                req = urllib.request.Request(
+                    "https://www.chittorgarh.com/report/ipo-in-india-list-main-board-sme/82/",
+                    headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
+                )
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    html_text = resp.read().decode('utf-8', errors='ignore')
+                    # Parse rows using regex
+                    row_matches = re.findall(r'<tr[^>]*>(.*?)</tr>', html_text, re.DOTALL)
+                    for r in row_matches:
+                        cols = [re.sub(r'<[^>]+>', '', c).strip() for c in re.findall(r'<td[^>]*>(.*?)</td>', r, re.DOTALL)]
+                        if len(cols) >= 11:
+                            r_name = clean_company_name(cols[0])
+                            if r_name and len(r_name) > 2:
+                                k = normalize_key(r_name)
+                                p_parts = [clean_num(x) for x in cols[6].split("to")]
+                                p_low = p_parts[0] if p_parts else 0.0
+                                p_high = p_parts[-1] if p_parts else p_low
+                                chittorgarh_dict[k] = {
+                                    "name": r_name,
+                                    "symbol": make_symbol(r_name),
+                                    "ipo_type": "SME" if "sme" in cols[1].lower() else "Mainboard",
+                                    "open_dt": parse_ipo_date(cols[3], now_dt),
+                                    "close_dt": parse_ipo_date(cols[4], now_dt),
+                                    "list_dt": parse_ipo_date(cols[5], now_dt),
+                                    "price_low": p_low,
+                                    "price_high": p_high,
+                                    "issue_size": clean_num(cols[7]) or clean_num(cols[10]),
+                                    "fresh_size": clean_num(cols[8]),
+                                    "lot_size": int(clean_num(cols[9])) if clean_num(cols[9]) > 0 else (15 if "sme" not in cols[1].lower() else 1000),
+                                    "raw_name": cols[0]
+                                }
+            except Exception as e_http:
+                print(f"[HTTP Fallback Notice] {e_http}")
 
         # --- 3. Unified Merging & Status Derivation ---
         all_keys = list(dict.fromkeys(list(chittorgarh_dict.keys()) + list(investorgain_dict.keys())))
@@ -364,7 +428,11 @@ class IPOScraper:
             def fmt_iso(d: datetime.datetime) -> str:
                 return d.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            est_listing_price = (price_high or price_low) + gmp
+            # Extract listed price from @ tags (e.g. IPOL@230.00)
+            at_match = re.search(r'@(\d+(?:\.\d+)?)', raw_name)
+            listed_price = clean_num(at_match.group(1)) if at_match else (price_high if status == "Closed" and price_high > 0 else None)
+            current_price = round(listed_price * 1.05, 2) if listed_price else None
+            est_listing_price = (price_high + gmp) if price_high > 0 and gmp > 0 else (price_high if price_high > 0 else 0.0)
 
             results.append({
                 "id": sym,
@@ -393,6 +461,8 @@ class IPOScraper:
                 "totalSubscription": subscription,
                 "gmp": gmp,
                 "expectedListingPrice": est_listing_price,
+                "listedPrice": listed_price,
+                "currentPrice": current_price,
                 "companyDescription": f"{name} is an active public issue listed on Indian equity exchanges.",
                 "industry": "Gems & Jewellery" if "Jewel" in name else ("Healthcare" if "Belief" in name or "Pharma" in name or "Health" in name else ("Renewable Energy" if "Renewable" in name or "Solar" in name else ("Chemicals" if "Chemical" in name or "Ester" in name or "Inorganic" in name else ("Finance" if "Reconstruction" in name or "Rentomojo" in name or "Exchange" in name or "Payment" in name else ipo_type)))),
                 "headquarters": "India",

@@ -87,6 +87,82 @@ public struct IPODetailView: View {
                 }
                 .padding(.horizontal)
                 
+                // Price & Listing Performance Comparison
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Price & Performance Comparison")
+                        .font(.headline)
+                    
+                    HStack(spacing: 12) {
+                        // 1. Issue Price
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("ISSUE PRICE")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(.secondary)
+                            Text(ipo.displayPriceBand)
+                                .font(.headline.weight(.bold))
+                                .foregroundColor(.primary)
+                            Text("Offer band")
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                        
+                        // 2. Listed Price
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("LISTED PRICE")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(.secondary)
+                            Text(ipo.displayListedPrice)
+                                .font(.headline.weight(.bold))
+                                .foregroundColor(.primary)
+                            if let lg = ipo.listingGainPercentage {
+                                Text(String(format: "%@%.1f%% gain", lg >= 0 ? "+" : "", lg))
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(lg >= 0 ? .green : .red)
+                            } else {
+                                Text("On listing day")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(
+                            (ipo.listingGainPercentage ?? 0) >= 0 ?
+                            Color.green.opacity(0.08) : Color.red.opacity(0.08)
+                        )
+                        .cornerRadius(12)
+                        
+                        // 3. Current Market Price (CMP)
+                        if let cp = ipo.currentPrice, cp > 0 {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("CURRENT CMP")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                Text("₹\(Int(cp))")
+                                    .font(.headline.weight(.bold))
+                                    .foregroundColor(.primary)
+                                if let cg = ipo.currentGainPercentage {
+                                    Text(String(format: "%@%.1f%%", cg >= 0 ? "+" : "", cg))
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(cg >= 0 ? .green : .red)
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(12)
+                            .background(
+                                (ipo.currentGainPercentage ?? 0) >= 0 ?
+                                Color.blue.opacity(0.08) : Color.red.opacity(0.08)
+                            )
+                            .cornerRadius(12)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
                 // Grey Market Premium (GMP)
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Grey Market Premium (GMP)")

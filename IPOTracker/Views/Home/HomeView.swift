@@ -9,111 +9,45 @@ public struct HomeView: View {
     public var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 22) {
                     
-                    // 1. Live Market Pulse Hero Banner (Subtle Glass Gradient)
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack(alignment: .center) {
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 8, height: 8)
-                                    .shadow(color: Color.green.opacity(0.8), radius: 4, x: 0, y: 0)
-                                Text("INDIAN PRIMARY MARKETS")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.green)
+                    // 1. Featured Spotlight Issue
+                    if let featured = viewModel.featuredIPO {
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                HStack(spacing: 6) {
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 8, height: 8)
+                                        .shadow(color: Color.green.opacity(0.8), radius: 4, x: 0, y: 0)
+                                    Text("SPOTLIGHT ISSUE")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(.green)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.green.opacity(0.12))
+                                .cornerRadius(8)
+                                
+                                Spacer()
+                                
+                                if featured.gmp > 0 {
+                                    Text("Top GMP Demand")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundColor(.secondary)
+                                }
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Color.green.opacity(0.12))
-                            .cornerRadius(20)
+                            .padding(.horizontal)
                             
-                            Spacer()
-                            
-                            Text("BSE / NSE")
-                                .font(.caption2.weight(.medium))
-                                .foregroundColor(.secondary)
+                            NavigationLink(destination: IPODetailView(ipo: featured)) {
+                                IPOCard(ipo: featured) {
+                                    selectedIPOForAllotment = featured
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.horizontal)
                         }
-                        
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Market Dashboard")
-                                .font(.system(size: 26, weight: .bold, design: .rounded))
-                                .foregroundColor(.primary)
-                            Text("Live IPO tracking, GMP sentiment, and allotment status.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        // Summary Stats Bar inside Hero
-                        HStack(spacing: 0) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("\(viewModel.openCount)")
-                                    .font(.title3.weight(.bold))
-                                    .foregroundColor(.primary)
-                                Text("Open Now")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            
-                            Divider()
-                                .frame(height: 28)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("\(viewModel.upcomingCount)")
-                                    .font(.title3.weight(.bold))
-                                    .foregroundColor(.primary)
-                                Text("Upcoming")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.leading, 16)
-                            
-                            Divider()
-                                .frame(height: 28)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(String(format: "+%.1f%%", viewModel.avgGMPPercentage))
-                                    .font(.title3.weight(.bold))
-                                    .foregroundColor(.green)
-                                Text("Avg. GMP")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.leading, 16)
-                        }
-                        .padding(.top, 4)
                     }
-                    .padding(18)
-                    .background(
-                        LinearGradient(
-                            colors: [
-                                Color.accentColor.opacity(0.12),
-                                Color.purple.opacity(0.06),
-                                Color(UIColor.secondarySystemBackground)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color.accentColor.opacity(0.3),
-                                        Color.primary.opacity(0.05)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-                    .padding(.horizontal)
                     
                     // 2. Bento Key Metrics Grid (4 Subtle Gradient Cards)
                     VStack(alignment: .leading, spacing: 12) {
@@ -158,40 +92,7 @@ public struct HomeView: View {
                         .padding(.horizontal)
                     }
                     
-                    // 3. Featured Spotlight Card (Highest GMP or Active issue)
-                    if let featured = viewModel.featuredIPO {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Spotlight Issue")
-                                    .font(.headline)
-                                Spacer()
-                                if featured.gmp > 0 {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "sparkles")
-                                            .font(.caption2)
-                                        Text("Top GMP Demand")
-                                            .font(.caption2.weight(.semibold))
-                                    }
-                                    .foregroundColor(.green)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 3)
-                                    .background(Color.green.opacity(0.12))
-                                    .cornerRadius(6)
-                                }
-                            }
-                            .padding(.horizontal)
-                            
-                            NavigationLink(destination: IPODetailView(ipo: featured)) {
-                                IPOCard(ipo: featured) {
-                                    selectedIPOForAllotment = featured
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            .padding(.horizontal)
-                        }
-                    }
-                    
-                    // 4. Top GMP Gainers (Horizontal Card Feed)
+                    // 3. Top GMP Gainers (Horizontal Card Feed)
                     if !viewModel.topGMPGainers.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
@@ -206,7 +107,7 @@ public struct HomeView: View {
                             
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
-                                    ForEach(viewModel.topGMPGainers.prefix(5)) { ipo in
+                                    ForEach(viewModel.topGMPGainers.prefix(6)) { ipo in
                                         NavigationLink(destination: IPODetailView(ipo: ipo)) {
                                             VStack(alignment: .leading, spacing: 10) {
                                                 HStack(alignment: .top) {
@@ -272,16 +173,19 @@ public struct HomeView: View {
                         }
                     }
                     
-                    // 5. Active Market Action
+                    // 4. Recent Live Actions
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text("Recent Live Action")
+                            Text("Recent Live Actions")
                                 .font(.headline)
                             Spacer()
+                            Text("Latest market updates")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
                         .padding(.horizontal)
                         
-                        ForEach(viewModel.ipos.prefix(4)) { ipo in
+                        ForEach(viewModel.ipos.prefix(6)) { ipo in
                             NavigationLink(destination: IPODetailView(ipo: ipo)) {
                                 IPOCard(ipo: ipo) {
                                     selectedIPOForAllotment = ipo
@@ -294,7 +198,7 @@ public struct HomeView: View {
                 }
                 .padding(.vertical, 12)
             }
-            .navigationTitle("IPOnow")
+            .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $selectedIPOForAllotment) { ipo in
                 AllotmentCheckerSheet(ipo: ipo)

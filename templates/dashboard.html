@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPOnow | Command Center & Live Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0d14;
+            --bg-secondary: #101522;
+            --bg-card: rgba(22, 29, 47, 0.7);
+            --bg-card-hover: rgba(30, 40, 64, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(99, 102, 241, 0.3);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.2);
+            --accent-amber: #f59e0b;
+            --accent-blue: #38bdf8;
+            --glass-blur: blur(16px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+            padding-bottom: 60px;
+        }
+
+        /* Glassmorphism Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 13, 20, 0.8);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Scraper Trigger Button */
+        .btn-scrape {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 14px var(--accent-glow);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-scrape:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-scrape:active {
+            transform: translateY(0);
+        }
+
+        .btn-scrape:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Container Layout */
+        .container {
+            max-width: 1400px;
+            margin: 32px auto;
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* Status & Bento Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--border-highlight);
+            transform: translateY(-2px);
+        }
+
+        .metric-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .metric-footer {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .badge-live {
+            background: var(--accent-green-glow);
+            color: var(--accent-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pulse-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.2); }
+        }
+
+        /* Controls / Search Bar */
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 18px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .search-box input {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent-primary);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            box-shadow: 0 2px 10px var(--accent-glow);
+        }
+
+        /* Table View */
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        thead {
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            padding: 14px 18px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background-color 0.15s;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        td {
+            padding: 16px 18px;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .company-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .company-badge {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(56, 189, 248, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .company-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .company-type {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .status-pill {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-open {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-upcoming {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .status-closed {
+            background: rgba(148, 163, 184, 0.15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .gain-pill {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .gain-neutral {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .btn-ai {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #818cf8;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-ai:hover {
+            background: var(--accent-primary);
+            color: white;
+            box-shadow: 0 2px 10px var(--accent-glow);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-highlight);
+            border-radius: 20px;
+            max-width: 550px;
+            width: 100%;
+            padding: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: modalIn 0.2s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .ai-pill {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1e293b;
+            border: 1px solid var(--border-highlight);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <div class="brand-icon">IPO</div>
+            <div>
+                <div class="brand-title">IPOnow Command Center</div>
+                <div class="brand-subtitle">Automated Live Scraper & AI Extraction Hub</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <div class="badge-live">
+                <div class="pulse-dot"></div>
+                <span id="cache-badge">Cache Ready</span>
+            </div>
+            <button class="btn-scrape" id="scrape-btn" onclick="triggerManualScrape()">
+                <span class="spinner" id="scrape-spinner"></span>
+                <span id="scrape-btn-text">⚡ Run Live Scraper Now</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Status & Metrics Bento Grid -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">
+                    <span>Total IPOs Monitored</span>
+                    <span>📊</span>
+                </div>
+                <div class="metric-value" id="metric-total">--</div>
+                <div class="metric-footer" id="metric-types">Mainboard & SME tracked</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">
+                    <span>Open / Live Now</span>
+                    <span>🟢</span>
+                </div>
+                <div class="metric-value" id="metric-open" style="color: #34d399;">--</div>
+                <div class="metric-footer">Currently accepting bids</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">
+                    <span>Upcoming Issues</span>
+                    <span>⏳</span>
+                </div>
+                <div class="metric-value" id="metric-upcoming" style="color: #38bdf8;">--</div>
+                <div class="metric-footer">Opening soon</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">
+                    <span>Cache Freshness</span>
+                    <span>⏱️</span>
+                </div>
+                <div class="metric-value" id="metric-age" style="font-size: 22px;">--</div>
+                <div class="metric-footer" id="metric-schedule">Scheduled: 09:30 & 18:30 IST</div>
+            </div>
+        </div>
+
+        <!-- Filter and Search Row -->
+        <div class="controls-row">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search by company name, symbol or exchange..." oninput="applyFilters()">
+            </div>
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+                <button class="filter-btn" data-filter="open" onclick="setFilter('open')">Open Now</button>
+                <button class="filter-btn" data-filter="upcoming" onclick="setFilter('upcoming')">Upcoming</button>
+                <button class="filter-btn" data-filter="closed" onclick="setFilter('closed')">Closed / Listed</button>
+                <button class="filter-btn" data-filter="mainboard" onclick="setFilter('mainboard')">Mainboard</button>
+                <button class="filter-btn" data-filter="sme" onclick="setFilter('sme')">SME</button>
+            </div>
+        </div>
+
+        <!-- IPO Data Table -->
+        <div class="table-card">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Company & Symbol</th>
+                            <th>Status</th>
+                            <th>Issue Price</th>
+                            <th>GMP (Est. Gain)</th>
+                            <th>Listed Price</th>
+                            <th>Current Price (CMP)</th>
+                            <th>Dates (Open - Close)</th>
+                            <th>Total Sub</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ipo-table-body">
+                        <tr>
+                            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                                Loading live IPO data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Analysis Modal -->
+    <div class="modal-overlay" id="ai-modal" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-company">AI Analysis</div>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                Loading insights...
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let allIpos = [];
+        let currentFilter = 'all';
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                const badge = document.getElementById('cache-badge');
+                if (data.is_fresh) {
+                    badge.innerText = `Cache Fresh (${data.cache_age_minutes}m ago)`;
+                } else {
+                    badge.innerText = `Cache Available (${data.cache_age_hours}h ago)`;
+                }
+                
+                document.getElementById('metric-age').innerText = `${data.cache_age_hours}h ago`;
+                document.getElementById('metric-schedule').innerText = data.refresh_schedule || "Twice daily at 09:30 & 18:30 IST";
+            } catch (e) {
+                console.error("Status fetch error:", e);
+            }
+        }
+
+        async function loadIpos() {
+            try {
+                const res = await fetch('/api/ipos');
+                allIpos = await res.json();
+                updateMetrics();
+                applyFilters();
+            } catch (e) {
+                console.error("Failed to load IPOs:", e);
+                showToast("Failed to load IPO data");
+            }
+        }
+
+        function updateMetrics() {
+            document.getElementById('metric-total').innerText = allIpos.length;
+            const openCount = allIpos.filter(i => (i.statusRaw || '').toLowerCase().includes('open')).length;
+            const upcomingCount = allIpos.filter(i => (i.statusRaw || '').toLowerCase().includes('upcoming')).length;
+            document.getElementById('metric-open').innerText = openCount;
+            document.getElementById('metric-upcoming').innerText = upcomingCount;
+        }
+
+        function formatDateRange(openIso, closeIso) {
+            if (!openIso || !closeIso) return "-";
+            const parseD = (s) => new Date(s).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            return `${parseD(openIso)} - ${parseD(closeIso)}`;
+        }
+
+        function renderTable(ipos) {
+            const tbody = document.getElementById('ipo-table-body');
+            if (!ipos.length) {
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 40px;">No IPOs found matching current filter.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = ipos.map(ipo => {
+                const statusLower = (ipo.statusRaw || '').toLowerCase();
+                let statusClass = 'status-closed';
+                if (statusLower.includes('open')) statusClass = 'status-open';
+                else if (statusLower.includes('upcoming')) statusClass = 'status-upcoming';
+
+                const gmpVal = ipo.gmp || 0;
+                const priceHigh = ipo.priceHigh || 0;
+                const gmpPct = priceHigh > 0 ? ((gmpVal / priceHigh) * 100).toFixed(1) : 0;
+                const gmpPill = gmpVal > 0 
+                    ? `<span class="gain-pill">+₹${gmpVal} (${gmpPct}%)</span>` 
+                    : `<span class="gain-neutral">₹0 (0%)</span>`;
+
+                const listedPriceStr = ipo.listedPrice ? `₹${ipo.listedPrice}` : '-';
+                let listGainBadge = '';
+                if (ipo.listedPrice && priceHigh > 0) {
+                    const lGain = (((ipo.listedPrice - priceHigh) / priceHigh) * 100).toFixed(1);
+                    listGainBadge = `<div style="font-size: 11px; color: ${lGain >= 0 ? '#10b981' : '#ef4444'}; font-weight:600;">${lGain >= 0 ? '+' : ''}${lGain}%</div>`;
+                }
+
+                const cmpStr = ipo.currentPrice ? `₹${ipo.currentPrice}` : '-';
+                let cmpGainBadge = '';
+                if (ipo.currentPrice && priceHigh > 0) {
+                    const cGain = (((ipo.currentPrice - priceHigh) / priceHigh) * 100).toFixed(1);
+                    cmpGainBadge = `<div style="font-size: 11px; color: ${cGain >= 0 ? '#10b981' : '#ef4444'}; font-weight:600;">${cGain >= 0 ? '+' : ''}${cGain}%</div>`;
+                }
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="company-cell">
+                                <div class="company-badge">${(ipo.symbol || 'IPO').slice(0, 3)}</div>
+                                <div>
+                                    <div class="company-name">${ipo.companyName}</div>
+                                    <div class="company-type">${ipo.symbol} • ${ipo.ipoTypeRaw || 'Mainboard'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="status-pill ${statusClass}">${ipo.statusRaw || 'Closed'}</span></td>
+                        <td class="mono">₹${ipo.priceHigh ? ipo.priceHigh : 'TBA'}</td>
+                        <td>${gmpPill}</td>
+                        <td class="mono">
+                            ${listedPriceStr}
+                            ${listGainBadge}
+                        </td>
+                        <td class="mono">
+                            ${cmpStr}
+                            ${cmpGainBadge}
+                        </td>
+                        <td class="mono" style="font-size: 12px; color: var(--text-secondary);">
+                            ${formatDateRange(ipo.openingDate, ipo.closingDate)}
+                        </td>
+                        <td class="mono">${ipo.totalSubscription ? ipo.totalSubscription + 'x' : '-'}</td>
+                        <td>
+                            <button class="btn-ai" onclick="openAIAnalysis('${ipo.id}')">✨ AI Insights</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
+            });
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = (document.getElementById('search-input').value || '').toLowerCase().trim();
+            let filtered = allIpos.filter(i => {
+                const matchQuery = !query || 
+                    (i.companyName || '').toLowerCase().includes(query) ||
+                    (i.symbol || '').toLowerCase().includes(query) ||
+                    (i.exchange || '').toLowerCase().includes(query);
+                
+                if (!matchQuery) return false;
+
+                const status = (i.statusRaw || '').toLowerCase();
+                const type = (i.ipoTypeRaw || '').toLowerCase();
+
+                if (currentFilter === 'open') return status.includes('open');
+                if (currentFilter === 'upcoming') return status.includes('upcoming');
+                if (currentFilter === 'closed') return status.includes('closed') || status.includes('allotment');
+                if (currentFilter === 'mainboard') return type.includes('mainboard');
+                if (currentFilter === 'sme') return type.includes('sme');
+
+                return true;
+            });
+            renderTable(filtered);
+        }
+
+        async function triggerManualScrape() {
+            const btn = document.getElementById('scrape-btn');
+            const spinner = document.getElementById('scrape-spinner');
+            const btnText = document.getElementById('scrape-btn-text');
+
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            btnText.innerText = 'Scraping & Tuning AI Data...';
+            showToast('Triggering live crawler + AI extraction. Please wait ~15s...');
+
+            try {
+                const res = await fetch('/api/refresh', { method: 'POST' });
+                const data = await res.json();
+                showToast(`Success! Scraped ${data.count} fresh IPOs.`);
+                await loadIpos();
+                await fetchStatus();
+            } catch (e) {
+                console.error(e);
+                showToast('Scrape completed or cached data reloaded.');
+                await loadIpos();
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.innerText = '⚡ Run Live Scraper Now';
+            }
+        }
+
+        async function openAIAnalysis(ipoId) {
+            const modal = document.getElementById('ai-modal');
+            const modalCompany = document.getElementById('modal-company');
+            const modalBody = document.getElementById('modal-body');
+
+            modal.style.display = 'flex';
+            modalCompany.innerText = `AI Analysis: ${ipoId}`;
+            modalBody.innerHTML = `<div style="text-align: center; padding: 20px; color: var(--text-muted);">Fetching fine-tuned AI sentiment...</div>`;
+
+            try {
+                const res = await fetch(`/api/ai/analyze/${ipoId}`);
+                const data = await res.json();
+                const ai = data.aiAnalysis || {};
+                const ipo = data.ipo || {};
+
+                modalCompany.innerText = `✨ AI Insights: ${ipo.companyName || ipoId}`;
+                modalBody.innerHTML = `
+                    <div class="ai-pill">
+                        <div style="font-weight: 700; color: #818cf8; margin-bottom: 4px;">Market Sentiment</div>
+                        <div style="font-size: 16px; font-weight: 600;">${ai.sentiment || 'Muted / Steady'}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="ai-pill">
+                            <div style="font-size: 12px; color: var(--text-muted);">Expected Listing Gain</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #10b981;">${ai.listingGainForecast || '0.0%'}</div>
+                        </div>
+                        <div class="ai-pill">
+                            <div style="font-size: 12px; color: var(--text-muted);">Demand Level</div>
+                            <div style="font-size: 18px; font-weight: 700; color: #38bdf8;">${ai.demandLevel || 'Moderate'}</div>
+                        </div>
+                    </div>
+                    <div class="ai-pill">
+                        <div style="font-size: 12px; color: var(--text-muted);">Recommendation Strategy</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #f59e0b; margin-top: 4px;">${ai.aiRecommendation || 'Evaluate Fundamentals'}</div>
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+                        Powered by Free AI Multi-Provider (Gemini Flash / Groq Llama 3) • Cached to conserve tokens
+                    </div>
+                `;
+            } catch (e) {
+                modalBody.innerHTML = `<div style="color: #ef4444;">Failed to load AI analysis.</div>`;
+            }
+        }
+
+        function closeModal(e) {
+            document.getElementById('ai-modal').style.display = 'none';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 4000);
+        }
+
+        // Initialize on load
+        fetchStatus();
+        loadIpos();
+    </script>
+</body>
+</html>

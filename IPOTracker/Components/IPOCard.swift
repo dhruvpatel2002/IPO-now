@@ -91,9 +91,22 @@ public struct IPOCard: View {
                 }
             }
             
-            // Footer: GMP & Subscription + Optional Allotment CTA
+            // Footer: GMP / Listed Comparison & Subscription + Optional Allotment CTA
             HStack(spacing: 8) {
-                if ipo.gmp > 0 {
+                if let lp = ipo.listedPrice, lp > 0, let lg = ipo.listingGainPercentage {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up.right.circle.fill")
+                            .font(.caption2)
+                            .foregroundColor(lg >= 0 ? .green : .red)
+                        Text("Listed: ₹\(Int(lp)) (\(String(format: "%@%.1f%%", lg >= 0 ? "+" : "", lg)))")
+                            .font(.caption.weight(.semibold))
+                            .foregroundColor(lg >= 0 ? .green : .red)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background((lg >= 0 ? Color.green : Color.red).opacity(0.1))
+                    .cornerRadius(6)
+                } else if ipo.gmp > 0 {
                     HStack(spacing: 4) {
                         Image(systemName: "chart.line.uptrend.xyaxis")
                             .font(.caption2)

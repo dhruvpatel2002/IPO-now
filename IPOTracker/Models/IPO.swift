@@ -91,6 +91,8 @@ public final class IPO: Identifiable, Codable {
     }
     
     public var rawPriceRange: String? = nil
+    public var listedPrice: Double? = nil
+    public var currentPrice: Double? = nil
     
     public var displayPriceBand: String {
         if let raw = rawPriceRange, !raw.isEmpty, raw != "–" {
@@ -104,6 +106,38 @@ public final class IPO: Identifiable, Codable {
             }
         }
         return "TBA"
+    }
+    
+    public var displayListedPrice: String {
+        if let lp = listedPrice, lp > 0 {
+            return "₹\(Int(lp))"
+        }
+        if expectedListingPrice > 0 {
+            return "₹\(Int(expectedListingPrice)) (Est.)"
+        }
+        return "TBA"
+    }
+    
+    public var displayCurrentPrice: String {
+        if let cp = currentPrice, cp > 0 {
+            return "₹\(Int(cp))"
+        }
+        return "–"
+    }
+    
+    public var listingGainPercentage: Double? {
+        if let lp = listedPrice, lp > 0, priceHigh > 0 {
+            return ((lp - priceHigh) / priceHigh) * 100
+        }
+        if gmp > 0 && priceHigh > 0 {
+            return gmpPercentage
+        }
+        return nil
+    }
+    
+    public var currentGainPercentage: Double? {
+        guard let cp = currentPrice, cp > 0, priceHigh > 0 else { return nil }
+        return ((cp - priceHigh) / priceHigh) * 100
     }
     
     public var displayIssueSize: String {
@@ -226,7 +260,8 @@ public final class IPO: Identifiable, Codable {
         case priceLow, priceHigh, lotSize, issueSizeInCr, freshIssueInCr, offerForSaleInCr, faceValue
         case openingDate, closingDate, allotmentDate, refundDate, dematDate, listingDate
         case retailSubscription, niiSubscription, qibSubscription, employeeSubscription, totalSubscription
-        case gmp, expectedListingPrice, companyDescription, industry, headquarters, promoterDetails
+        case gmp, expectedListingPrice, listedPrice, currentPrice
+        case companyDescription, industry, headquarters, promoterDetails
         case revenueInCr, profitInCr, eps, peRatio, roe, debtInCr, strengths, risks, ipoObjective
     }
     
@@ -266,6 +301,8 @@ public final class IPO: Identifiable, Codable {
         let gmpVal = (try? container.decode(Double.self, forKey: .gmp)) ?? 0.0
         self.gmp = gmpVal
         self.expectedListingPrice = (try? container.decode(Double.self, forKey: .expectedListingPrice)) ?? (pHigh + gmpVal)
+        self.listedPrice = try? container.decodeIfPresent(Double.self, forKey: .listedPrice)
+        self.currentPrice = try? container.decodeIfPresent(Double.self, forKey: .currentPrice)
         
         self.companyDescription = (try? container.decode(String.self, forKey: .companyDescription)) ?? ""
         self.industry = (try? container.decode(String.self, forKey: .industry)) ?? "Commercial"
@@ -311,6 +348,8 @@ public final class IPO: Identifiable, Codable {
         try container.encode(totalSubscription, forKey: .totalSubscription)
         try container.encode(gmp, forKey: .gmp)
         try container.encode(expectedListingPrice, forKey: .expectedListingPrice)
+        try container.encodeIfPresent(listedPrice, forKey: .listedPrice)
+        try container.encodeIfPresent(currentPrice, forKey: .currentPrice)
         try container.encode(companyDescription, forKey: .companyDescription)
         try container.encode(industry, forKey: .industry)
         try container.encode(headquarters, forKey: .headquarters)

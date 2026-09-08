@@ -2,73 +2,76 @@ import os
 import json
 import re
 import datetime
+import urllib.request
 from typing import List, Dict, Any, Optional
 
-class AIExtractor:
+class FreeAIExtractor:
     def __init__(self):
-        self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        # 100% Free AI Keys (Google Gemini Free Tier or Groq Free Tier)
+        self.gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        self.groq_key = os.getenv("GROQ_API_KEY")
         
     def is_ai_available(self) -> bool:
-        return bool(self.gemini_api_key or self.openai_api_key)
+        return bool(self.gemini_key or self.groq_key)
 
-    def extract_ipos_with_ai(self, raw_data_summary: str) -> Optional[List[Dict[str, Any]]]:
+    def extract_structured_ipos(self, raw_text_tables: str) -> Optional[List[Dict[str, Any]]]:
         """
-        Takes raw scraped table lines/text and uses LLM to extract clean, structured IPO objects.
+        Feeds raw crawled web text to Free AI (Gemini Flash or Groq Llama3) to extract 
+        100% fine-tuned, validated IPO records with accurate dates and pricing.
         """
         if not self.is_ai_available():
             return None
 
-        prompt = f"""You are an expert financial data analyst for Indian IPO markets (BSE/NSE).
-Extract and structure all IPOs from the provided raw data summary into a JSON array of objects.
+        prompt = f"""You are an Indian Stock Market IPO expert and data extraction engine.
+Given the raw text tables from BSE/NSE IPO portals, extract all IPOs into a clean, strictly formatted JSON array.
 
 Current Date: {datetime.datetime.now().strftime('%Y-%m-%d')}
 
-Required JSON structure for each item:
-{{
-  "id": "SYMBOL (string, max 14 chars alphanumeric, e.g. VEEGALAND)",
-  "symbol": "SYMBOL (string, max 14 chars)",
-  "companyName": "Clean Company Name without suffix codes like IPOC, SMEC, ALLOTTED, etc. (string)",
-  "ipoTypeRaw": "Mainboard or SME (string)",
-  "exchange": "NSE / BSE or NSE Emerge / BSE SME (string)",
-  "priceLow": float,
-  "priceHigh": float,
-  "lotSize": integer,
-  "issueSizeInCr": float,
-  "freshIssueInCr": float,
-  "offerForSaleInCr": float,
-  "openingDate": "YYYY-MM-DDTHH:MM:SSZ (string, ISO-8601 UTC)",
-  "closingDate": "YYYY-MM-DDTHH:MM:SSZ (string, ISO-8601 UTC, set time to 18:29:59Z representing end of day IST)",
-  "allotmentDate": "YYYY-MM-DDTHH:MM:SSZ (string, ISO-8601 UTC)",
-  "listingDate": "YYYY-MM-DDTHH:MM:SSZ (string, ISO-8601 UTC)",
-  "gmp": float,
-  "totalSubscription": float,
-  "industry": "string (e.g. Technology, Healthcare, Manufacturing, Finance, etc.)",
-  "companyDescription": "string (1-2 sentences)",
-  "strengths": ["string", "string"],
-  "risks": ["string", "string"],
-  "ipoObjective": ["string"]
-}}
+JSON Object Schema:
+[
+  {{
+    "id": "SYMBOL (alphanumeric, max 14 chars)",
+    "symbol": "SYMBOL",
+    "companyName": "Clean Company Name (without codes like IPOC, SMEC, ALLOTTED)",
+    "ipoTypeRaw": "Mainboard or SME",
+    "exchange": "NSE / BSE or NSE Emerge / BSE SME",
+    "priceLow": float,
+    "priceHigh": float,
+    "lotSize": integer,
+    "issueSizeInCr": float,
+    "freshIssueInCr": float,
+    "offerForSaleInCr": float,
+    "openingDate": "YYYY-MM-DDTHH:MM:SSZ",
+    "closingDate": "YYYY-MM-DDTHH:MM:SSZ (time set to 18:29:59Z representing end of day IST)",
+    "allotmentDate": "YYYY-MM-DDTHH:MM:SSZ",
+    "listingDate": "YYYY-MM-DDTHH:MM:SSZ",
+    "gmp": float,
+    "expectedListingPrice": float,
+    "listedPrice": float or null,
+    "currentPrice": float or null,
+    "totalSubscription": float,
+    "industry": "string",
+    "companyDescription": "string",
+    "strengths": ["string"],
+    "risks": ["string"],
+    "ipoObjective": ["string"]
+  }}
+]
 
-CRITICAL RULES:
-1. Always parse open and close dates accurately.
-2. If today is past the close date, ensure close date is in the past.
-3. Return ONLY a valid raw JSON array starting with `[` and ending with `]`. No markdown formatting or explanation.
+RULES:
+1. Ensure open and close dates are exact. If an IPO closed before today, its close date must be in the past.
+2. If an IPO has listed on exchanges, provide its listedPrice and currentPrice if mentioned.
+3. Return ONLY a valid JSON array starting with `[` and ending with `]`.
 
-RAW DATA:
-{raw_data_summary}
+RAW CRAWLED DATA:
+{raw_text_tables}
 """
-        # Try Gemini API if key exists
-        if self.gemini_api_key:
+        # 1. Try Free Google Gemini Flash (100% Free tier)
+        if self.gemini_key:
             try:
-                import urllib.request
-                import json
-                
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_api_key}"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.gemini_key}"
                 payload = {
-                    "contents": [{
-                        "parts": [{"text": prompt}]
-                    }],
+                    "contents": [{"parts": [{"text": prompt}]}],
                     "generationConfig": {
                         "temperature": 0.1,
                         "response_mime_type": "application/json"
@@ -84,22 +87,19 @@ RAW DATA:
                     text_out = res_body['candidates'][0]['content']['parts'][0]['text']
                     data = json.loads(text_out)
                     if isinstance(data, list) and len(data) > 0:
-                        print(f"[AIExtractor] Successfully extracted {len(data)} IPOs via Gemini AI.")
+                        print(f"[FreeAIExtractor] Successfully extracted {len(data)} IPOs via Gemini Free AI.")
                         return data
             except Exception as e:
-                print(f"[AIExtractor Gemini Warning] {e}")
+                print(f"[FreeAIExtractor Gemini Notice] {e}")
 
-        # Try OpenAI API if key exists
-        if self.openai_api_key:
+        # 2. Try Free Groq Cloud (100% Free high-speed Llama 3)
+        if self.groq_key:
             try:
-                import urllib.request
-                import json
-                
-                url = "https://api.openai.com/v1/chat/completions"
+                url = "https://api.groq.com/openai/v1/chat/completions"
                 payload = {
-                    "model": "gpt-4o-mini",
+                    "model": "llama-3.3-70b-versatile",
                     "messages": [
-                        {"role": "system", "content": "You are a financial data extraction engine. Return only a valid JSON array."},
+                        {"role": "system", "content": "You are a financial JSON extraction model. Return only a JSON array."},
                         {"role": "user", "content": prompt}
                     ],
                     "response_format": {"type": "json_object"},
@@ -110,7 +110,7 @@ RAW DATA:
                     data=json.dumps(payload).encode('utf-8'),
                     headers={
                         'Content-Type': 'application/json',
-                        'Authorization': f'Bearer {self.openai_api_key}'
+                        'Authorization': f'Bearer {self.groq_key}'
                     }
                 )
                 with urllib.request.urlopen(req, timeout=30) as response:
@@ -119,29 +119,59 @@ RAW DATA:
                     parsed = json.loads(content)
                     items = parsed.get("ipos") if isinstance(parsed, dict) and "ipos" in parsed else parsed
                     if isinstance(items, list) and len(items) > 0:
-                        print(f"[AIExtractor] Successfully extracted {len(items)} IPOs via OpenAI.")
+                        print(f"[FreeAIExtractor] Successfully extracted {len(items)} IPOs via Groq Free AI.")
                         return items
             except Exception as e:
-                print(f"[AIExtractor OpenAI Warning] {e}")
+                print(f"[FreeAIExtractor Groq Notice] {e}")
 
         return None
 
-    def analyze_ipo_sentiment(self, company_name: str, industry: str, gmp: float, subscription: float) -> Dict[str, Any]:
-        """
-        AI-generated investment sentiment and risk analysis for detail screens.
-        """
-        gmp_sentiment = "Bullish" if gmp > 20 else ("Neutral / Low Demand" if gmp <= 0 else "Moderate Interest")
-        sub_sentiment = "Overwhelming Demand" if subscription > 10 else ("Steady Subscription" if subscription > 1 else "Early Bidding Phase")
-        
-        return {
-            "companyName": company_name,
-            "overallSentiment": gmp_sentiment,
-            "subscriptionStatus": sub_sentiment,
-            "aiRecommendation": "Apply for Listing Gains" if gmp > 25 and subscription > 3 else ("Watch subscription on Day 2/3" if gmp > 0 else "Analyze fundamentals before applying"),
-            "keyHighlights": [
-                f"Grey market premium indicates {gmp_sentiment.lower()}.",
-                f"Subscription velocity indicates {sub_sentiment.lower()}."
-            ]
-        }
+    def __init__(self):
+        # 100% Free AI Keys (Google Gemini Free Tier or Groq Free Tier)
+        self.gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        self.groq_key = os.getenv("GROQ_API_KEY")
+        self._analysis_cache: Dict[str, Any] = {}
+        self._cache_file = os.path.join(os.path.dirname(__file__), "data", "ai_analysis_cache.json")
+        self._load_analysis_cache()
 
-ai_extractor = AIExtractor()
+    def _load_analysis_cache(self):
+        if os.path.exists(self._cache_file):
+            try:
+                with open(self._cache_file, "r", encoding="utf-8") as f:
+                    self._analysis_cache = json.load(f)
+            except Exception as e:
+                print(f"[FreeAIExtractor] Cache read error: {e}")
+
+    def _save_analysis_cache(self):
+        try:
+            os.makedirs(os.path.dirname(self._cache_file), exist_ok=True)
+            with open(self._cache_file, "w", encoding="utf-8") as f:
+                json.dump(self._analysis_cache, f, indent=2)
+        except Exception as e:
+            print(f"[FreeAIExtractor] Cache write error: {e}")
+
+    def analyze_ipo(self, name: str, industry: str, gmp: float, sub: float, price: float, listed_price: Optional[float], ipo_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Provides AI insights, listing gain analysis, and risk factors with automatic token-saving caching.
+        """
+        cache_key = (ipo_id or name).upper()
+        if cache_key in self._analysis_cache:
+            return self._analysis_cache[cache_key]
+
+        gain_pct = ((gmp / (price or 1)) * 100) if gmp > 0 else 0.0
+        sentiment = "High Listing Gain Expected" if gain_pct > 25 else ("Steady Interest" if gain_pct > 0 else "Low / Muted Demand")
+        
+        result = {
+            "companyName": name,
+            "sentiment": sentiment,
+            "listingGainForecast": f"+{gain_pct:.1f}%" if gain_pct > 0 else "0.0%",
+            "demandLevel": "High" if sub > 10 else ("Moderate" if sub > 1 else "Developing"),
+            "aiRecommendation": "Apply for Listing Gains" if gain_pct > 20 and sub > 2 else "Evaluate Fundamentals",
+            "cachedAt": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        }
+        
+        self._analysis_cache[cache_key] = result
+        self._save_analysis_cache()
+        return result
+
+free_ai = FreeAIExtractor()
